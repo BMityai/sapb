@@ -1,3 +1,10 @@
+import IOC from "sosise-core/build/ServiceProviders/IOC";
+import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
+import AuthRepository from "../app/Repositories/LocalStorage/Adminhtml/Auth/AuthRepository";
+import LoggerRepository from "../app/Repositories/LocalStorage/Logger/LoggerRepository";
+import AuthService from "../app/Services/Adminhtml/AuthService";
+import LoggerToDbService from "../app/Services/LoggerToDbService";
+
 /**
  * IOC Config, please register here your services
  */
@@ -34,6 +41,17 @@ const iocConfig = {
         //     }
         //     return new LoggerService(new LoggerJsonConsoleRepository());
         // }
+
+        // Logger to db service
+        LoggerToDbService: () => {
+            new LoggerToDbService(new LoggerRepository)
+        },
+
+        // Auth service
+        AuthService: () => {
+            return new AuthService(new AuthRepository, IOC.make(LoggerService), IOC.make(LoggerToDbService));
+        },
+
     }
 };
 

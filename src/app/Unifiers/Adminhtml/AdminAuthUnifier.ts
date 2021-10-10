@@ -7,7 +7,8 @@ import ValidationException from 'sosise-core/build/Exceptions/Validation/Validat
 export default class AdminAuthUnifier {
 
     private params: any;
-    public customerId: number;
+    public username: string;
+    public password: string;
 
     /**
      * Constructor
@@ -29,7 +30,8 @@ export default class AdminAuthUnifier {
     private validate() {
         // Create validator
         const validator = new Validator(this.params, {
-            id: ['required', 'numeric', 'min:1'],
+            username: ['required', 'string'],
+            password: ['required', 'string'],
         });
 
         // If it fails throw exception
@@ -42,6 +44,7 @@ export default class AdminAuthUnifier {
      * Request data mapping
      */
     private map() {
-        this.customerId = this.params.id;
+        this.username = this.params.username;
+        this.password = this.params.password;
     }
 }

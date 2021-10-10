@@ -7,7 +7,7 @@ import ValidationException from 'sosise-core/build/Exceptions/Validation/Validat
 export default class GetAdminUserByJwtUnifier {
 
     private params: any;
-    public customerId: number;
+    public token: string;
 
     /**
      * Constructor
@@ -29,7 +29,7 @@ export default class GetAdminUserByJwtUnifier {
     private validate() {
         // Create validator
         const validator = new Validator(this.params, {
-            id: ['required', 'numeric', 'min:1'],
+            jwt: ['required', 'string', 'min:1'],
         });
 
         // If it fails throw exception
@@ -42,6 +42,6 @@ export default class GetAdminUserByJwtUnifier {
      * Request data mapping
      */
     private map() {
-        this.customerId = this.params.id;
+        this.token = this.params.jwt;
     }
 }
