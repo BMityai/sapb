@@ -31,10 +31,8 @@ export default class AuthService {
      */
     public async auth(params: AdminAuthUnifier) {
 
-        // Get user by username
+        // Get user by username`
         const user = await this.localStorageRepository.getAdminUser(params.username);
-
-        console.log(user)
         if (!user) {
             throw new AdminUserNotFoundException('User not found', params.username);
         }

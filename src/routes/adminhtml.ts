@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import AdminhtmlController from '../app/Http/Controllers/AdminhtmlController';
 import cors from 'cors';
 import Helper from 'sosise-core/build/Helper/Helper';
+import Auth from '../app/Http/Middlewares/Auth';
 
 const router = express.Router();
 
@@ -25,13 +26,16 @@ router.use(cors(corsOptions));
 // AdminhtmlController
 const adminhtmlController = new AdminhtmlController();
 
+// Auth middleware
+const authMiddleware = new Auth();
+
 // Login
 router.post(`/frontapi/${version}/auth`, (request: Request, response: Response, next: NextFunction) => {
     adminhtmlController.auth(request, response, next);
 });
 
-// Login
-router.get(`/frontapi/${version}/user`, (request: Request, response: Response, next: NextFunction) => {
+// Get user by jwt
+router.get(`/frontapi/${version}/user`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
     adminhtmlController.getUserByJwt(request, response, next);
 });
 

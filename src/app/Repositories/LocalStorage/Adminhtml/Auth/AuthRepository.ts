@@ -8,8 +8,11 @@ export default class AuthRepository extends LocalStorageRepository implements Au
      */
     public async getAdminUser(login: string) {
         return await this.dbClient.table('admin_user')
-            .where('username', login)
-            .orWhere('email', login)
+            .where('status', 1)
+            .where(function () {
+                this.where('username', login)
+                    .orWhere('email', login)
+            })
             .first()
     }
 
