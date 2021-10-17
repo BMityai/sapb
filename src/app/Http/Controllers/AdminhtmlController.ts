@@ -33,9 +33,9 @@ export default class AdminhtmlController {
      * Get admin user by jwt token
      */
     public async getUserByJwt(request: Request, response: Response, next: NextFunction) {
-        const adminAuthUnifier = new GetAdminUserByJwtUnifier(request.query);
+        const getAdminUserByJwtUnifier = new GetAdminUserByJwtUnifier(request.query);
         try {
-            const result = await this.service.getUserByJwt(adminAuthUnifier.token)
+            const result = await this.service.getUserByJwt(getAdminUserByJwtUnifier.token)
             return response.send(result);
         } catch (error) {
             next(error);

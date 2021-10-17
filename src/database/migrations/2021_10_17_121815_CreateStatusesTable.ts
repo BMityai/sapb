@@ -3,9 +3,9 @@ import BaseSchema from 'sosise-core/build/Database/BaseSchema';
 /**
  * If you need more information, see: http://knexjs.org/#Schema
  */
-export default class CreateAdminUserTable extends BaseSchema {
+export default class CreateStatusesTable extends BaseSchema {
 
-    protected tableName = 'admin_user';
+    protected tableName = 'status_mapping';
 
     /**
      * Run the migrations.
@@ -13,13 +13,8 @@ export default class CreateAdminUserTable extends BaseSchema {
     public async up(): Promise<void> {
         await this.dbConnection.schema.createTable(this.tableName, (table) => {
             table.increments('id');
-            table.string('firstname').notNullable();
-            table.string('lastname').nullable();
-            table.string('email').notNullable().unique();
-            table.string('username').notNullable().unique();
-            table.string('password').notNullable();
-            table.boolean('status').notNullable();
-            table.boolean('dark_theme').defaultTo(false);
+            table.string('crm_status').notNullable();
+            table.string('kaspi_status').notNullable();
             table.timestamps(true);
         });
     }

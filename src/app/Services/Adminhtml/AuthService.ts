@@ -69,5 +69,4 @@ export default class AuthService {
             throw new AdminUserNotFoundException('User not found', jwtToken)
         }
     }
-
 }
