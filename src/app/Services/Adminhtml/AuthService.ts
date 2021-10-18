@@ -7,7 +7,6 @@ import AdminUserNotFoundException from "../../Exceptions/AdminUserNotFoundExcept
 import AuthRepositoryInterface from "../../Repositories/LocalStorage/Adminhtml/Auth/AuthRepositoryInterface";
 import authConfig from "../../../config/auth";
 import PasswordIsNotValidException from "../../Exceptions/PasswordIsNotValidException";
-import Helper from "sosise-core/build/Helper/Helper";
 
 
 

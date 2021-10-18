@@ -4,6 +4,7 @@ import AdminhtmlController from '../app/Http/Controllers/AdminhtmlController';
 import cors from 'cors';
 import Helper from 'sosise-core/build/Helper/Helper';
 import Auth from '../app/Http/Middlewares/Auth';
+import StatusMappingService from '../app/Services/Adminhtml/StatusMappingService';
 
 const router = express.Router();
 
@@ -20,9 +21,6 @@ router.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 5
 router.use(cors(corsOptions));
 
 
-
-
-
 // AdminhtmlController
 const adminhtmlController = new AdminhtmlController();
 
@@ -37,6 +35,20 @@ router.post(`/frontapi/${version}/auth`, (request: Request, response: Response, 
 // Get user by jwt
 router.get(`/frontapi/${version}/user`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
     adminhtmlController.getUserByJwt(request, response, next);
+});
+
+
+
+
+
+// Get statuses
+router.get(`/frontapi/${version}/statuses`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.getStatuses(request, response, next);
+});
+
+// Save statuses
+router.post(`/frontapi/${version}/statuses`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.saveStatuses(request, response, next);
 });
 
 

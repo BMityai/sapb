@@ -1,8 +1,10 @@
 import IOC from "sosise-core/build/ServiceProviders/IOC";
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import AuthRepository from "../app/Repositories/LocalStorage/Adminhtml/Auth/AuthRepository";
+import LocalStorageRepository from "../app/Repositories/LocalStorage/LocalStorageRepository";
 import LoggerRepository from "../app/Repositories/LocalStorage/Logger/LoggerRepository";
 import AuthService from "../app/Services/Adminhtml/AuthService";
+import StatusMappingService from "../app/Services/Adminhtml/StatusMappingService";
 import LoggerToDbService from "../app/Services/LoggerToDbService";
 
 /**
@@ -44,12 +46,17 @@ const iocConfig = {
 
         // Logger to db service
         LoggerToDbService: () => {
-            new LoggerToDbService(new LoggerRepository)
+            new LoggerToDbService(new LoggerRepository())
         },
 
         // Auth service
         AuthService: () => {
-            return new AuthService(new AuthRepository, IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new AuthService(new AuthRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+        },
+
+        // Auth service
+        StatusMappingService: () => {
+            return new StatusMappingService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
         },
 
     }
