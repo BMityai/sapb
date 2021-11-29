@@ -9,5 +9,9 @@ export default interface LocalStorageRepositoryInterface {
      */
     getStatuses(): Promise<StatusMappingType[]>;
 
+    /**
+     * Get users
+     */
+    getUsers();
     
 }

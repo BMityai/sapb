@@ -15,7 +15,7 @@ const corsOptions = {
 
 const version = 'v1';
 
-router.use(express.json({limit: '10mb'}))
+router.use(express.json({ limit: '10mb' }))
 router.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 50000 }))
 
 router.use(cors(corsOptions));
@@ -49,6 +49,36 @@ router.get(`/frontapi/${version}/statuses`, authMiddleware.handle, (request: Req
 // Save statuses
 router.post(`/frontapi/${version}/statuses`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
     adminhtmlController.saveStatuses(request, response, next);
+});
+
+// Get warehouses
+router.get(`/frontapi/${version}/warehouses`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.getWarehouses(request, response, next);
+});
+
+// Save warehouses
+router.post(`/frontapi/${version}/warehouses`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.saveWarehouses(request, response, next);
+});
+
+// Get all orders info
+router.get(`/frontapi/${version}/dashboard/info_all`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.getAllOrdersInfo(request, response, next);
+});
+
+// Get orders info for the year
+router.get(`/frontapi/${version}/dashboard/info_year`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.getOrdersInfoForTheLastYear(request, response, next);
+});
+
+// Get orders for dashboard table
+router.get(`/frontapi/${version}/dashboard/orders`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.getOrders(request, response, next);
+});
+
+// Get users
+router.get(`/frontapi/${version}/users`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.getUsers(request, response, next);
 });
 
 
