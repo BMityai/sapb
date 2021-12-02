@@ -1,12 +1,17 @@
 import IOC from "sosise-core/build/ServiceProviders/IOC";
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
+import KaspiBankApiRepository from "../app/Repositories/KaspiBank/KaspiBankApiRepository";
 import AuthRepository from "../app/Repositories/LocalStorage/Adminhtml/Auth/AuthRepository";
-import LocalStorageRepository from "../app/Repositories/LocalStorage/LocalStorageRepository";
+import LocalStorageRepository from "../app/Repositories/LocalStorage/Adminhtml/LocalStorageRepository";
 import LoggerRepository from "../app/Repositories/LocalStorage/Logger/LoggerRepository";
+import LsApiRepository from "../app/Repositories/LoyaltySystem/LsApiRepository";
+import RetailCrmApiRepository from "../app/Repositories/RetailCrm/RetailCrmApiRepository";
 import AdminUserService from "../app/Services/Adminhtml/AdminUserService";
 import AuthService from "../app/Services/Adminhtml/AuthService";
 import DashboardService from "../app/Services/Adminhtml/DashboardService";
 import StatusMappingService from "../app/Services/Adminhtml/StatusMappingService";
+import WarehouseMappingService from "../app/Services/Adminhtml/WarehouseMappingService";
+import GetNewOrdersFromKaspiService from "../app/Services/GetNewOrdersFromKaspiService";
 import LoggerToDbService from "../app/Services/LoggerToDbService";
 
 /**
@@ -48,7 +53,7 @@ const iocConfig = {
 
         // Logger to db service
         LoggerToDbService: () => {
-            new LoggerToDbService(new LoggerRepository())
+            return new LoggerToDbService(new LoggerRepository());
         },
 
         // Auth service
@@ -61,6 +66,11 @@ const iocConfig = {
             return new StatusMappingService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
         },
 
+        // Warehouse mapping service
+        WarehouseMappingService: () => {
+            return new WarehouseMappingService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+        },
+
         // Dashboard service
         DashboardService: () => {
             return new DashboardService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
@@ -69,6 +79,16 @@ const iocConfig = {
         // AdminUser service
         AdminUserService: () => {
             return new AdminUserService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+        },
+
+        // GetNewOrdersFromKaspiService service
+        GetNewOrdersFromKaspiService: () => {
+            return new GetNewOrdersFromKaspiService(
+                new KaspiBankApiRepository(),
+                new LocalStorageRepository(),
+                new RetailCrmApiRepository(),
+                new LsApiRepository()
+            );
         },
 
     }

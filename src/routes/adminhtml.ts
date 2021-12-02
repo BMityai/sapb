@@ -4,19 +4,18 @@ import AdminhtmlController from '../app/Http/Controllers/AdminhtmlController';
 import cors from 'cors';
 import Helper from 'sosise-core/build/Helper/Helper';
 import Auth from '../app/Http/Middlewares/Auth';
-import StatusMappingService from '../app/Services/Adminhtml/StatusMappingService';
 
 const router = express.Router();
 
 const corsOptions = {
     origin: '*',
     optionsSuccessStatus: 200
-}
+};
 
 const version = 'v1';
 
-router.use(express.json({ limit: '10mb' }))
-router.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 50000 }))
+router.use(express.json({ limit: '10mb' }));
+router.use(express.urlencoded({ extended: true, limit: '10mb', parameterLimit: 50000 }));
 
 router.use(cors(corsOptions));
 
@@ -79,6 +78,16 @@ router.get(`/frontapi/${version}/dashboard/orders`, authMiddleware.handle, (requ
 // Get users
 router.get(`/frontapi/${version}/users`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
     adminhtmlController.getUsers(request, response, next);
+});
+
+// Create user
+router.post(`/frontapi/${version}/user/create`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.createUser(request, response, next);
+});
+
+// Update user
+router.post(`/frontapi/${version}/user/update`, authMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    adminhtmlController.updateUser(request, response, next);
 });
 
 

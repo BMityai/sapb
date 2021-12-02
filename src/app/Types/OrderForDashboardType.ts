@@ -14,5 +14,5 @@ export default interface OrderForDashboardType {
         isExpress: boolean;
         exportedToCrmData: string;
         log: string[];
-    }
+    };
 }

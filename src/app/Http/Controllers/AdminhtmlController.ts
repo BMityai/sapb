@@ -5,20 +5,26 @@ import AdminUserService from '../../Services/Adminhtml/AdminUserService';
 import AuthService from '../../Services/Adminhtml/AuthService';
 import DashboardService from '../../Services/Adminhtml/DashboardService';
 import StatusMappingService from '../../Services/Adminhtml/StatusMappingService';
+import WarehouseMappingService from '../../Services/Adminhtml/WarehouseMappingService';
 import AdminAuthUnifier from '../../Unifiers/Adminhtml/AdminAuthUnifier';
+import CreateUserUnifier from '../../Unifiers/Adminhtml/CreateUserUnifier';
 import GetAdminUserByJwtUnifier from '../../Unifiers/Adminhtml/GetAdminUserByJwtUnifier';
+import SaveStatusesUnifier from '../../Unifiers/Adminhtml/SaveStatusesUnifier';
+import SaveWarehousesUnifier from '../../Unifiers/Adminhtml/SaveWarehousesUnifier';
 
 
 export default class AdminhtmlController {
 
     authService: AuthService;
     statusMappingService: StatusMappingService;
+    warehouseMappingService: WarehouseMappingService;
     dashboardService: DashboardService;
     adminUserService: AdminUserService;
 
     constructor() {
         this.authService = IOC.make(AuthService);
         this.statusMappingService = IOC.make(StatusMappingService);
+        this.warehouseMappingService = IOC.make(WarehouseMappingService);
         this.dashboardService = IOC.make(DashboardService);
         this.adminUserService = IOC.make(AdminUserService);
     }
@@ -30,7 +36,7 @@ export default class AdminhtmlController {
         const adminAuthUnifier = new AdminAuthUnifier(request.body);
 
         try {
-            const result = await this.authService.auth(adminAuthUnifier)
+            const result = await this.authService.auth(adminAuthUnifier);
             return response.send(result);
         } catch (error) {
             next(error);
@@ -43,7 +49,7 @@ export default class AdminhtmlController {
     public async getUserByJwt(request: Request, response: Response, next: NextFunction) {
         const getAdminUserByJwtUnifier = new GetAdminUserByJwtUnifier(request.query);
         try {
-            const result = await this.authService.getUserByJwt(getAdminUserByJwtUnifier.token)
+            const result = await this.authService.getUserByJwt(getAdminUserByJwtUnifier.token);
             return response.send(result);
         } catch (error) {
             next(error);
@@ -66,9 +72,9 @@ export default class AdminhtmlController {
      * Save statuses
      */
     public async saveStatuses(request: Request, response: Response, next: NextFunction) {
-        Helper.dump(request.body)
+        const saveStatusesUnifier = new SaveStatusesUnifier(request.body);
         try {
-            const result = await this.statusMappingService.getStatuses();
+            const result = await this.statusMappingService.saveStatuses(saveStatusesUnifier);
             return response.send(result);
         } catch (error) {
             next(error);
@@ -80,7 +86,7 @@ export default class AdminhtmlController {
      */
     public async getWarehouses(request: Request, response: Response, next: NextFunction) {
         try {
-            const result = await this.statusMappingService.getStatuses();
+            const result = await this.warehouseMappingService.getWarehouses();
             return response.send(result);
         } catch (error) {
             next(error);
@@ -91,9 +97,9 @@ export default class AdminhtmlController {
      * Save warehouses
      */
     public async saveWarehouses(request: Request, response: Response, next: NextFunction) {
-        Helper.dump(request.body)
+        const saveWarehousesUnifier = new SaveWarehousesUnifier(request.body);
         try {
-            const result = await this.statusMappingService.getStatuses();
+            const result = await this.warehouseMappingService.saveWarehouses(saveWarehousesUnifier);
             return response.send(result);
         } catch (error) {
             next(error);
@@ -142,6 +148,32 @@ export default class AdminhtmlController {
     public async getUsers(request: Request, response: Response, next: NextFunction) {
         try {
             const result = await this.adminUserService.getUsers();
+            return response.send(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Create users
+     */
+    public async createUser(request: Request, response: Response, next: NextFunction) {
+        try {
+            const createUserunifier = new CreateUserUnifier(request.body);
+            const result = await this.adminUserService.createUser(createUserunifier);
+            return response.send(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Update users
+     */
+    public async updateUser(request: Request, response: Response, next: NextFunction) {
+        try {
+            const createUserunifier = new CreateUserUnifier(request.body);
+            const result = await this.adminUserService.updateUser(createUserunifier);
             return response.send(result);
         } catch (error) {
             next(error);

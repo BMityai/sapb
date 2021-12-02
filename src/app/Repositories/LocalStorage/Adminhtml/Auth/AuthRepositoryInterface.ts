@@ -1,3 +1,5 @@
+import AdminUserType from "../../../../Types/AdminUserType";
+
 export default interface AuthRepositoryInterface {
     /**
      * Get admin user by login or email
@@ -7,5 +9,5 @@ export default interface AuthRepositoryInterface {
     /**
      * Get admin user by userId
      */
-    getUserById(userId: string);
+    getUserById(userId: string): Promise<AdminUserType>;
 }

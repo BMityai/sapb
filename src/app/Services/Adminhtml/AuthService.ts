@@ -1,8 +1,8 @@
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import AdminAuthUnifier from "../../Unifiers/Adminhtml/AdminAuthUnifier";
 import LoggerToDbService from "../LoggerToDbService";
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import AdminUserNotFoundException from "../../Exceptions/AdminUserNotFoundException";
 import AuthRepositoryInterface from "../../Repositories/LocalStorage/Adminhtml/Auth/AuthRepositoryInterface";
 import authConfig from "../../../config/auth";
@@ -46,11 +46,14 @@ export default class AuthService {
                 { id: user.id },
                 authConfig.secret,
                 { expiresIn: authConfig.expires }
-            )
+            );
+
+            delete user.password;
+
             return {
                 auth: true,
-                token: token,
-                user: user
+                token,
+                user
             };
         }
         throw new AdminUserNotFoundException('User not found', params.username);
@@ -63,9 +66,9 @@ export default class AuthService {
         try {
             const decoded = jwt.verify(jwtToken, authConfig.secret) as { id: string };
             const user = await this.localStorageRepository.getUserById(decoded.id);
-            return { auth: true, user }
+            return { auth: true, user };
         } catch (e) {
-            throw new AdminUserNotFoundException('User not found', jwtToken)
+            throw new AdminUserNotFoundException('User not found', jwtToken);
         }
     }
 }

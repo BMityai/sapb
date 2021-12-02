@@ -1,4 +1,4 @@
-import LocalStorageRepositoryInterface from "../Repositories/LocalStorage/LocalStorageRepositoryInterface";
+import LocalStorageRepositoryInterface from "../Repositories/LocalStorage/Adminhtml/LocalStorageRepositoryInterface";
 
 export default class LoggerToDbService {
 

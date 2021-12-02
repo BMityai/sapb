@@ -1,6 +1,6 @@
 
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
-import LocalStorageRepositoryInterface from "../../Repositories/LocalStorage/LocalStorageRepositoryInterface";
+import LocalStorageRepositoryInterface from "../../Repositories/LocalStorage/Adminhtml/LocalStorageRepositoryInterface";
 import GetAllOrdersInfoForDashboardType from "../../Types/GetAllOrdersInfoForDashboardType";
 import GetOrdersResponseType from "../../Types/GetOrdersResponseType";
 import OrdersInfoForTheLastYearForDashboardType from "../../Types/OrdersInfoForTheLastYearForDashboardType";
@@ -26,14 +26,14 @@ export default class DashboardService {
      */
     public async getAllOrdersInfo(): Promise<GetAllOrdersInfoForDashboardType> {
 
-        //@todo нужно доработать, получать данные из БД
+        // @todo нужно доработать, получать данные из БД
 
         return {
             allOrders: 785,
             today: 21,
             completed: 365,
             canceled: 254
-        }
+        };
     }
 
     /**
@@ -62,7 +62,7 @@ export default class DashboardService {
                 canceled: [39, 45, 62, 48, 4, 47, 52, 20, 89, 130, 58, 90]
             }
 
-        }
+        };
 
         return result;
     }
@@ -155,11 +155,11 @@ export default class DashboardService {
                     ]
                 }
             }
-        ]
+        ];
         const response = {
             totalRecords: 235,
             orders
-        }
+        };
 
         return response;
     }

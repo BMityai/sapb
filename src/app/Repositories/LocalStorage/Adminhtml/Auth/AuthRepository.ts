@@ -1,5 +1,6 @@
 import AuthRepositoryInterface from './AuthRepositoryInterface';
-import LocalStorageRepository from '../../LocalStorageRepository';
+import LocalStorageRepository from '../LocalStorageRepository';
+import AdminUserType from '../../../../Types/AdminUserType';
 
 export default class AuthRepository extends LocalStorageRepository implements AuthRepositoryInterface {
 
@@ -11,18 +12,29 @@ export default class AuthRepository extends LocalStorageRepository implements Au
             .where('status', 1)
             .where(function () {
                 this.where('username', login)
-                    .orWhere('email', login)
+                    .orWhere('email', login);
             })
-            .first()
+            .first();
     }
 
     /**
      * Get admin user by userId
      */
-    public async getUserById(userId: string) {
-        return await this.dbClient.table('admin_user')
+    public async getUserById(userId: string): Promise<AdminUserType> {
+        const user = await this.dbClient.table('admin_user')
             .where('id', userId)
-            .first()
+            .first();
+
+        // typecast
+        return {
+            id: user.id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            username: user.username,
+            email: user.email,
+            status: user.status,
+            createdAt: user.created_at
+        };
     }
 
 }

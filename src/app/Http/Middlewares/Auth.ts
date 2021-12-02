@@ -15,8 +15,9 @@ export default class Auth {
         }
 
         try {
-            jwt.verify(request.headers.token as string, authConfig.secret);
-            next()
+            const user = jwt.verify(request.headers.token as string, authConfig.secret) as {id: string};
+            request.body.userId = user.id;
+            next();
         } catch(e) {
             throw new UnauthorizedException('Unauthorized');
         }

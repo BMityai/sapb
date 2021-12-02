@@ -9,8 +9,6 @@ export default class StatusMappingType {
 
     /**
      * Constructor
-     * 
-     * @param data 
      */
     constructor(data: any) {
         this.setProps(data);
@@ -18,8 +16,6 @@ export default class StatusMappingType {
 
     /**
      * Set props
-     * 
-     * @param data 
      */
     private setProps(data: any): void {
         this.id = data.id;

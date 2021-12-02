@@ -4,5 +4,5 @@ export default interface OrdersInfoForTheLastYearForDashboardType {
         all: number[],
         completed: number[],
         canceled: number[]
-    }
+    };
 }
