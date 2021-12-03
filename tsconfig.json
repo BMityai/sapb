@@ -21,7 +21,7 @@
     "include": [
         "node_modules/sosise-core/build",
         "./src/**/*"
-, "src/app/Unifiers/Adminhtml/GetAdminUserByJwtUnifier.ts", "src/app/Services/Adminhtml/WarehouseMappingService.ts"    ],
+, "src/app/Unifiers/Adminhtml/GetAdminUserByJwtUnifier.ts", "src/app/Services/Adminhtml/WarehouseMappingService.ts", "src/app/Exceptions/.ts"    ],
     "lib": [
         "es2015"
     ]

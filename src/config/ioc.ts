@@ -2,7 +2,8 @@ import IOC from "sosise-core/build/ServiceProviders/IOC";
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import KaspiBankApiRepository from "../app/Repositories/KaspiBank/KaspiBankApiRepository";
 import AuthRepository from "../app/Repositories/LocalStorage/Adminhtml/Auth/AuthRepository";
-import LocalStorageRepository from "../app/Repositories/LocalStorage/Adminhtml/LocalStorageRepository";
+import LocalStorageRepositoryAdminHtml from "../app/Repositories/LocalStorage/Adminhtml/LocalStorageRepository";
+import LocalStorageRepository from "../app/Repositories/LocalStorage/LocalStorageRepository";
 import LoggerRepository from "../app/Repositories/LocalStorage/Logger/LoggerRepository";
 import LsApiRepository from "../app/Repositories/LoyaltySystem/LsApiRepository";
 import RetailCrmApiRepository from "../app/Repositories/RetailCrm/RetailCrmApiRepository";
@@ -63,22 +64,22 @@ const iocConfig = {
 
         // Status mapping service
         StatusMappingService: () => {
-            return new StatusMappingService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new StatusMappingService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
         },
 
         // Warehouse mapping service
         WarehouseMappingService: () => {
-            return new WarehouseMappingService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new WarehouseMappingService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
         },
 
         // Dashboard service
         DashboardService: () => {
-            return new DashboardService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new DashboardService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
         },
 
         // AdminUser service
         AdminUserService: () => {
-            return new AdminUserService(new LocalStorageRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new AdminUserService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
         },
 
         // GetNewOrdersFromKaspiService service

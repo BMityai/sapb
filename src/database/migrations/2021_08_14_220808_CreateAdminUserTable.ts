@@ -19,7 +19,6 @@ export default class CreateAdminUserTable extends BaseSchema {
             table.string('username').notNullable().unique();
             table.string('password').notNullable();
             table.boolean('status').notNullable();
-            table.boolean('dark_theme').defaultTo(false);
             table.timestamps(true);
         });
     }

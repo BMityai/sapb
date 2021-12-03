@@ -7,5 +7,5 @@ export default interface ParamsForKaspiOrderProductsTableType {
     price: number;
     kaspi_order_id: number | null;
     created_at: Date;
-    updated_at: Date;
+    updated_at: Date
 }
