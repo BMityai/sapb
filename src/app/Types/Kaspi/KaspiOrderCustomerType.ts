@@ -4,4 +4,5 @@ export default interface KaspiOrderCustomerType {
     cellPhone: string | null;
     firstName: string | null;
     lastName: string | null;
+    idLs?: number;
 }

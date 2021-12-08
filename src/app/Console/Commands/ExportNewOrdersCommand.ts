@@ -1,18 +1,18 @@
 import commander from 'commander';
 import BaseCommand, { OptionType } from 'sosise-core/build/Command/BaseCommand';
 import IOC from 'sosise-core/build/ServiceProviders/IOC';
-import GetNewOrdersFromKaspiService from '../../Services/GetNewOrdersFromKaspiService';
+import ExportOrdersService from '../../Services/ExportOrdersService';
 
-export default class GetNewOrdersFromKaspiCommand extends BaseCommand {
+export default class ExportNewOrdersCommand extends BaseCommand {
     /**
      * Command name
      */
-    protected signature: string = 'sap:getneworders';
+    protected signature: string = 'sap:exportorders';
 
     /**
      * Command description
      */
-    protected description: string = 'Imports new orders from the kaspi personal account';
+    protected description: string = 'Export new orders to retail crm';
 
     /**
      * When command is executed prevent from double execution
@@ -29,8 +29,8 @@ export default class GetNewOrdersFromKaspiCommand extends BaseCommand {
      * Execute the console command
      */
     public async handle(cli: commander.Command): Promise<void> {
-        const service = IOC.make(GetNewOrdersFromKaspiService) as GetNewOrdersFromKaspiService;
+        const service = IOC.make(ExportOrdersService) as ExportOrdersService;
 
-        await service.getNewOrdersAndConvert();
+        await service.export();
     }
 }

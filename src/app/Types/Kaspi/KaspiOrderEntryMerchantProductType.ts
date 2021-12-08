@@ -4,5 +4,5 @@ export default interface KaspiOrderEntryMerchantProductType {
         code: string;
         name: string;
         manufacturer: string | null;
-    }
+    };
 }

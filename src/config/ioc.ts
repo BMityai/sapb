@@ -4,7 +4,6 @@ import KaspiBankApiRepository from "../app/Repositories/KaspiBank/KaspiBankApiRe
 import AuthRepository from "../app/Repositories/LocalStorage/Adminhtml/Auth/AuthRepository";
 import LocalStorageRepositoryAdminHtml from "../app/Repositories/LocalStorage/Adminhtml/LocalStorageRepository";
 import LocalStorageRepository from "../app/Repositories/LocalStorage/LocalStorageRepository";
-import LoggerRepository from "../app/Repositories/LocalStorage/Logger/LoggerRepository";
 import LsApiRepository from "../app/Repositories/LoyaltySystem/LsApiRepository";
 import RetailCrmApiRepository from "../app/Repositories/RetailCrm/RetailCrmApiRepository";
 import AdminUserService from "../app/Services/Adminhtml/AdminUserService";
@@ -12,8 +11,9 @@ import AuthService from "../app/Services/Adminhtml/AuthService";
 import DashboardService from "../app/Services/Adminhtml/DashboardService";
 import StatusMappingService from "../app/Services/Adminhtml/StatusMappingService";
 import WarehouseMappingService from "../app/Services/Adminhtml/WarehouseMappingService";
+import ExportOrdersService from "../app/Services/ExportOrdersService";
+import GetChangesFromKaspiService from "../app/Services/GetChangesFromKaspiService";
 import GetNewOrdersFromKaspiService from "../app/Services/GetNewOrdersFromKaspiService";
-import LoggerToDbService from "../app/Services/LoggerToDbService";
 
 /**
  * IOC Config, please register here your services
@@ -52,34 +52,30 @@ const iocConfig = {
         //     return new LoggerService(new LoggerJsonConsoleRepository());
         // }
 
-        // Logger to db service
-        LoggerToDbService: () => {
-            return new LoggerToDbService(new LoggerRepository());
-        },
 
         // Auth service
         AuthService: () => {
-            return new AuthService(new AuthRepository(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new AuthService(new AuthRepository(), IOC.make(LoggerService));
         },
 
         // Status mapping service
         StatusMappingService: () => {
-            return new StatusMappingService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new StatusMappingService(new LocalStorageRepositoryAdminHtml());
         },
 
         // Warehouse mapping service
         WarehouseMappingService: () => {
-            return new WarehouseMappingService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new WarehouseMappingService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService));
         },
 
         // Dashboard service
         DashboardService: () => {
-            return new DashboardService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new DashboardService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService));
         },
 
         // AdminUser service
         AdminUserService: () => {
-            return new AdminUserService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService), IOC.make(LoggerToDbService));
+            return new AdminUserService(new LocalStorageRepositoryAdminHtml(), IOC.make(LoggerService));
         },
 
         // GetNewOrdersFromKaspiService service
@@ -89,6 +85,23 @@ const iocConfig = {
                 new LocalStorageRepository(),
                 new RetailCrmApiRepository(),
                 new LsApiRepository()
+            );
+        },
+
+        // ExportOrdersService service
+        ExportOrdersService: () => {
+            return new ExportOrdersService(
+                new LocalStorageRepository(),
+                new RetailCrmApiRepository()
+            );
+        },
+
+        // GetChangesFromKaspiService service
+        GetChangesFromKaspiService: () => {
+            return new GetChangesFromKaspiService(
+                new LocalStorageRepository(),
+                new KaspiBankApiRepository(),
+                new RetailCrmApiRepository()
             );
         },
 

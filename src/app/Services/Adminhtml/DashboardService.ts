@@ -4,21 +4,18 @@ import LocalStorageRepositoryInterface from "../../Repositories/LocalStorage/Adm
 import GetAllOrdersInfoForDashboardType from "../../Types/GetAllOrdersInfoForDashboardType";
 import GetOrdersResponseType from "../../Types/GetOrdersResponseType";
 import OrdersInfoForTheLastYearForDashboardType from "../../Types/OrdersInfoForTheLastYearForDashboardType";
-import LoggerToDbService from "../LoggerToDbService";
 
 export default class DashboardService {
 
     protected localStorageRepository: LocalStorageRepositoryInterface;
     protected loggerService: LoggerService;
-    protected loggerToDbService: LoggerToDbService;
 
     /**
      * Constructor
      */
-    public constructor(localStorageRepository: LocalStorageRepositoryInterface, loggerService: LoggerService, loggerToDbService: LoggerToDbService) {
+    public constructor(localStorageRepository: LocalStorageRepositoryInterface, loggerService: LoggerService) {
         this.localStorageRepository = localStorageRepository;
         this.loggerService = loggerService;
-        this.loggerToDbService = loggerToDbService;
     }
 
     /**

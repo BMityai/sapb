@@ -1,14 +1,12 @@
 import Exception from 'sosise-core/build/Exceptions/Exception';
-import LoggerService from 'sosise-core/build/Services/Logger/LoggerService';
 import ExceptionResponse from 'sosise-core/build/Types/ExceptionResponse';
 
-export default class KaspiRequestException extends Exception {
+export default class CrmRequestException extends Exception {
 
     // This variables are optional, you may remove them
     public params: any;
     public response: any;
     public httpCode: 400;
-
 
     /**
      * Constructor
@@ -25,7 +23,7 @@ export default class KaspiRequestException extends Exception {
      */
     public handle(exception: this, response: any) {
         const httpResponse: ExceptionResponse = {
-            message: 'Exception occured during request to Kaspi',
+            message: 'Exception occured during request to CRM',
             httpCode: this.httpCode,
             data: {
                 details: exception.message,

@@ -2,7 +2,9 @@ import KaspiOrderEntriesType from "../../Types/Kaspi/KaspiOrderEntriesType";
 import KaspiOrderEntryDeliveryPointOfServiceType from "../../Types/Kaspi/KaspiOrderEntryDeliveryPointOfServiceType";
 import KaspiOrderEntryMerchantProductType from "../../Types/Kaspi/KaspiOrderEntryMerchantProductType";
 import KaspiOrderEntryProductType from "../../Types/Kaspi/KaspiOrderEntryProductType";
+import KaspiOrderStatusType from "../../Types/Kaspi/KaspiOrderStatusType";
 import KaspiOrderType from "../../Types/Kaspi/KaspiOrderType";
+import ReturnRequestedOrReturnedOrderType from "../../Types/Kaspi/ReturnRequestedOrReturnedOrderType";
 
 export default interface KaspiBankApiRepositoryInterface {
 
@@ -36,4 +38,23 @@ export default interface KaspiBankApiRepositoryInterface {
      */
     getEntryMerchantProduct(merchantProductLink: string, store: string): Promise<KaspiOrderEntryMerchantProductType>;
 
+    /**
+     * Get order statuses by kaspiId from kaspi
+     */
+    getOrderStatusByKaspiId(kaspiId: string, site: string): Promise<KaspiOrderStatusType>;
+
+    /**
+     * Get return requested orders
+     */
+    getReturnRequestedOrdersPerStore(store: string): Promise<ReturnRequestedOrReturnedOrderType[] | []>;
+
+    /**
+     * Get returned orders
+     */
+    getReturnedOrdersPerStore(store: string): Promise<ReturnRequestedOrReturnedOrderType[] | []>;
+
+    /**
+     * Get order waybill link
+     */
+    getWaybillLinkByKaspiId(kaspiId: string, site: string): Promise<string | null>;
 }

@@ -12,10 +12,10 @@ export default interface KaspiOrderAttributesType {
     isKaspiDelivery: boolean;
     deliveryCostPrePaid: boolean;
     deliveryMode: string;
-    deliveryAddress: KaspiOrderDeliveryAddressType
+    deliveryAddress: KaspiOrderDeliveryAddressType;
     signatureRequired: boolean;
     creditTerm: number;
-    kaspiDelivery: KaspiOrderKaspiDeliveryType
+    kaspiDelivery: KaspiOrderKaspiDeliveryType;
     preOrder: boolean;
     state: string;
     assembled: boolean;

@@ -1,24 +1,19 @@
 
-import Helper from "sosise-core/build/Helper/Helper";
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import LocalStorageRepositoryInterface from "../../Repositories/LocalStorage/Adminhtml/LocalStorageRepositoryInterface";
 import StatusMappingType from "../../Types/StatusMappingType";
 import SaveStatusesUnifier from "../../Unifiers/Adminhtml/SaveStatusesUnifier";
-import LoggerToDbService from "../LoggerToDbService";
 
 export default class StatusMappingService {
 
     protected localStorageRepository: LocalStorageRepositoryInterface;
     protected loggerService: LoggerService;
-    protected loggerToDbService: LoggerToDbService;
 
     /**
      * Constructor
      */
-    public constructor(localStorageRepository: LocalStorageRepositoryInterface, loggerService: LoggerService, loggerToDbService: LoggerToDbService) {
+    public constructor(localStorageRepository: LocalStorageRepositoryInterface) {
         this.localStorageRepository = localStorageRepository;
-        this.loggerService = loggerService;
-        this.loggerToDbService = loggerToDbService;
     }
 
     /**

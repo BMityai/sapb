@@ -5,7 +5,7 @@ export default interface KaspiOrderEntryProductType {
     attributes: {
         code: string;
         name: number;
-    }
+    };
     merchantProductLink: string;
     merchantProduct?: KaspiOrderEntryMerchantProductType;
     method?: string;

@@ -9,7 +9,7 @@ export default interface KaspiOrderEntriesType {
         entryNumber: number;
         deliveryCost: number;
         basePrice: number;
-    }
+    };
     productLink: string;
     deliveryPointOfServiceLink: string;
     product?: KaspiOrderEntryProductType;

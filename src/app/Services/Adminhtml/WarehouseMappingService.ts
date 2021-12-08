@@ -1,24 +1,19 @@
-
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import LocalStorageRepositoryInterface from "../../Repositories/LocalStorage/Adminhtml/LocalStorageRepositoryInterface";
-import StatusMappingType from "../../Types/StatusMappingType";
 import WarehouseMappingType from "../../Types/WarehouseMappingType";
 import SaveWarehousesUnifier from "../../Unifiers/Adminhtml/SaveWarehousesUnifier";
-import LoggerToDbService from "../LoggerToDbService";
 
 export default class WarehouseMappingService {
 
     protected localStorageRepository: LocalStorageRepositoryInterface;
     protected loggerService: LoggerService;
-    protected loggerToDbService: LoggerToDbService;
 
     /**
      * Constructor
      */
-    public constructor(localStorageRepository: LocalStorageRepositoryInterface, loggerService: LoggerService, loggerToDbService: LoggerToDbService) {
+    public constructor(localStorageRepository: LocalStorageRepositoryInterface, loggerService: LoggerService) {
         this.localStorageRepository = localStorageRepository;
         this.loggerService = loggerService;
-        this.loggerToDbService = loggerToDbService;
     }
 
     /**
@@ -28,10 +23,10 @@ export default class WarehouseMappingService {
         return await this.localStorageRepository.getWarehouses();
     }
 
-       /**
-        * Save statuses
-        */
-       public async saveWarehouses(saveStatusesUnifier: SaveWarehousesUnifier): Promise<WarehouseMappingType[]> {
+    /**
+     * Save statuses
+     */
+    public async saveWarehouses(saveStatusesUnifier: SaveWarehousesUnifier): Promise<WarehouseMappingType[]> {
         const saveStatusesPromise = [
             this.removeWarehouses(saveStatusesUnifier),
             this.updateWarehouses(saveStatusesUnifier),
@@ -68,7 +63,7 @@ export default class WarehouseMappingService {
             preparedData.push(status);
         }
 
-        if(!preparedData.length) return;
+        if (!preparedData.length) return;
 
         await this.localStorageRepository.updateWarehouses(preparedData);
     }
@@ -87,7 +82,7 @@ export default class WarehouseMappingService {
                 updated_at: new Date(),
             });
         }
-        if(!preparedData.length) return;
+        if (!preparedData.length) return;
 
         await this.localStorageRepository.saveNewWarehouses(preparedData);
     }

@@ -15,6 +15,8 @@ import KaspiOrderEntriesType from "../../Types/Kaspi/KaspiOrderEntriesType";
 import KaspiOrderEntryProductType from "../../Types/Kaspi/KaspiOrderEntryProductType";
 import KaspiOrderEntryDeliveryPointOfServiceType from "../../Types/Kaspi/KaspiOrderEntryDeliveryPointOfServiceType";
 import KaspiOrderEntryMerchantProductType from "../../Types/Kaspi/KaspiOrderEntryMerchantProductType";
+import KaspiOrderStatusType from "../../Types/Kaspi/KaspiOrderStatusType";
+import ReturnRequestedOrReturnedOrderType from "../../Types/Kaspi/ReturnRequestedOrReturnedOrderType";
 
 
 
@@ -42,7 +44,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         this.headers = this.getHeaders(store);
 
         // Get date ... days ago in milliseconds
-        const date = this.getDateOfTheExpiredPeriodInMilliseconds();
+        const date = this.getDateOfTheExpiredPeriodInMilliseconds(kaspibankConfig.period);
 
         // Prepare params
         const params = {
@@ -96,7 +98,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         // Send request
         const response = await this.httpClient.get('', {
             baseURL: entriesLink,
-            headers: headers
+            headers
         });
 
         // Typecast
@@ -113,7 +115,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
                 },
                 productLink: entry.relationships.product.links.related,
                 deliveryPointOfServiceLink: entry.relationships.deliveryPointOfService.links.related,
-            }
+            };
             typedEntries.push(entries);
         }
 
@@ -131,7 +133,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         // Send request
         const response = await this.httpClient.get('', {
             baseURL: productLink,
-            headers: headers
+            headers
         });
 
         // Typecast
@@ -142,7 +144,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
                 name: response.data.data.attributes.name,
             },
             merchantProductLink: response.data.data.relationships.merchantProduct.links.related,
-        }
+        };
 
         return product;
     }
@@ -158,7 +160,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         // Send request
         const response = await this.httpClient.get('', {
             baseURL: entry.deliveryPointOfServiceLink,
-            headers: headers
+            headers
         });
 
         // Typecast
@@ -180,7 +182,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
             },
             method: this.getEntryDeliveryPointOfServices.name,
             entryId: entry.id
-        }
+        };
 
         return deliveryPointOfService;
     }
@@ -196,7 +198,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         // Send request
         const response = await this.httpClient.get('', {
             baseURL: merchantProductLink,
-            headers: headers
+            headers
         });
 
         // Typecast
@@ -207,7 +209,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
                 name: response.data.data.attributes.name,
                 manufacturer: lodash.get(response.data.data, 'attributes.manufacturer', null)
             }
-        }
+        };
 
         return merchantProduct;
     }
@@ -223,7 +225,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         // Send request
         const response = await this.httpClient.get('', {
             baseURL: deliveryPointOfServiceLink,
-            headers: headers
+            headers
         });
 
         // Typecast
@@ -243,7 +245,7 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
                 },
                 displayName: response.data.data.attributes.displayName,
             },
-        }
+        };
 
         return deliveryPointOfService;
     }
@@ -258,8 +260,8 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
                 code: order.attributes.code,
                 totalPrice: order.attributes.totalPrice,
                 paymentMode: order.attributes.paymentMode,
-                plannedDeliveryDate: this.getFormattedDate(lodash.get(order.attributes, 'deliveryAddress.plannedDeliveryDate', null)),
-                reservationDate: this.getFormattedDate(lodash.get(order.attributes, 'deliveryAddress.reservationDate', null)),
+                plannedDeliveryDate: this.getFormattedDate(lodash.get(order.attributes, 'plannedDeliveryDate', null)),
+                reservationDate: this.getFormattedDate(lodash.get(order.attributes, 'reservationDate', null)),
                 creationDate: order.attributes.creationDate,
                 deliveryCostForSeller: order.attributes.deliveryCostForSeller,
                 isKaspiDelivery: order.attributes.isKaspiDelivery,
@@ -302,7 +304,134 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
             },
             entriesLink: order.relationships.entries.links.related,
             store
+        };
+    }
+
+    /**
+     * Get order statuses by kaspiId from kaspi
+     */
+    public async getOrderStatusByKaspiId(kaspiId: string, site: string): Promise<KaspiOrderStatusType> {
+
+        // Prepare uri
+        const uri = 'orders/' + kaspiId;
+
+        // Prepare header
+        const headers = this.getHeaders(site);
+
+        const response = await this.makeRequest(uri, 'GET', null, null, headers);
+
+        // Typecast response
+        const typedResponse: KaspiOrderStatusType = {
+            status: lodash.get(response, 'data.data.attributes.status', null),
+            state: lodash.get(response, 'data.data.attributes.state', null),
+        };
+        return typedResponse;
+    }
+
+    /**
+     * Get return requested orders
+     */
+    public async getReturnRequestedOrdersPerStore(store: string): Promise<ReturnRequestedOrReturnedOrderType[] | []> {
+        // Prepare headers
+        this.headers = this.getHeaders(store);
+
+        // Get date ... days ago in milliseconds
+        const date = this.getDateOfTheExpiredPeriodInMilliseconds(kaspibankConfig.returnRequestedPeriod);
+
+        // Prepare params
+        const params = {
+            'page[number]': 0,
+            'page[size]': kaspibankConfig.orderPerPage,
+            'filter[orders][state]': KaspiOrderStatesEnum.kaspiDelivery,
+            'filter[orders][status]': KaspiOrderStatusesEnum.returnRequested,
+            'filter [orders][creationDate][$ge]': date
+        };
+
+        // Make request
+        const response = await this.makeRequest('orders', 'GET', params, null, this.headers);
+
+        // Get orders
+        const orders = lodash.get(response, 'data.data', []);
+
+        if (isEmpty(orders)) {
+            return [];
         }
+        // Typecast orders
+        const typedReturnRequestedOrders = new Array();
+        for (const returnedOrder of orders) {
+
+            const typedOrder: ReturnRequestedOrReturnedOrderType = {
+                code: returnedOrder.attributes.code,
+                kaspiId: returnedOrder.id,
+                kaspiState: returnedOrder.attributes.state,
+                kaspiStatus: returnedOrder.attributes.status,
+            };
+
+            typedReturnRequestedOrders.push(typedOrder);
+        }
+        return typedReturnRequestedOrders;
+    }
+
+    /**
+     * Get returned orders
+     */
+    public async getReturnedOrdersPerStore(store: string): Promise<ReturnRequestedOrReturnedOrderType[] | []> {
+        // Prepare headers
+        this.headers = this.getHeaders(store);
+
+        // Get date ... days ago in milliseconds
+        const date = this.getDateOfTheExpiredPeriodInMilliseconds(kaspibankConfig.returnRequestedPeriod);
+
+        // Prepare params
+        const params = {
+            'page[number]': 0,
+            'page[size]': kaspibankConfig.orderPerPage,
+            'filter[orders][state]': KaspiOrderStatesEnum.archive,
+            'filter[orders][status]': KaspiOrderStatusesEnum.returned,
+            'filter [orders][creationDate][$ge]': date
+        };
+
+        // Make request
+        const response = await this.makeRequest('orders', 'GET', params, null, this.headers);
+
+        // Get orders
+        const orders = lodash.get(response, 'data.data', []);
+
+
+        if (isEmpty(orders)) {
+            return [];
+        }
+        // Typecast orders
+        const typedReturnRequestedOrders = new Array();
+        for (const returnedOrder of orders) {
+
+            const typedOrder: ReturnRequestedOrReturnedOrderType = {
+                code: returnedOrder.attributes.code,
+                kaspiId: returnedOrder.id,
+                kaspiState: returnedOrder.attributes.state,
+                kaspiStatus: returnedOrder.attributes.status,
+            };
+
+            typedReturnRequestedOrders.push(typedOrder);
+        }
+        return typedReturnRequestedOrders;
+    }
+
+    /**
+     * Get order waybill link
+     */
+    public async getWaybillLinkByKaspiId(kaspiId: string, site: string): Promise<string | null> {
+
+        // Prepare uri
+        const uri = 'orders/' + kaspiId;
+
+        // Prepare header
+        const headers = this.getHeaders(site);
+
+        // Send request
+        const response = await this.makeRequest(uri, 'GET', null, null, headers);
+
+        return lodash.get(response, 'data.data.attributes.kaspiDelivery.waybill', null);
     }
 
     /**
@@ -312,15 +441,13 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         if (isNull(date)) {
             return null;
         }
-        return dayjs(date).format('YYYY-MM-DDTHH:mm:ss')
+        return dayjs(date).format('YYYY-MM-DDTHH:mm:ss');
     }
-
-
 
     /**
      * Make request
      */
-    private async makeRequest(url: string, method: "GET" | "DELETE" | "POST" | "PUT", params: any = null, body: any = null, headers: any = null, auth: any = null): Promise<any> {
+    private async makeRequest(url: string, method: "GET" | "DELETE" | "POST" | "PUT", params: any = null, body: any = null, headers: any = null): Promise<any> {
         // Current amount of tries
         let tries = 0;
 
@@ -359,8 +486,8 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
     /**
      * Get date in milliseconds for the past period
      */
-    private getDateOfTheExpiredPeriodInMilliseconds(): number {
-        return dayjs().add(kaspibankConfig.period, 'day').valueOf();
+    private getDateOfTheExpiredPeriodInMilliseconds(period: number): number {
+        return dayjs().add(period, 'day').valueOf();
     }
 
     /**
@@ -383,7 +510,5 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
 
         return headers;
     }
-
-
 
 }

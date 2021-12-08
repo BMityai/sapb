@@ -6,21 +6,20 @@ import KaspiBankApiRepositoryInterface from "../Repositories/KaspiBank/KaspiBank
 import LsApiRepositoryInterface from "../Repositories/LoyaltySystem/LsApiRepositoryInterface";
 import RetailCrmApiRepositoryInterface from "../Repositories/RetailCrm/RetailCrmApiRepositoryInterface";
 import LocalStorageRepositoryInterface from "../Repositories/LocalStorage/LocalStorageRepositoryInterface";
-import LoggerToDbService from "./LoggerToDbService";
 import KaspiOrderType from "../Types/Kaspi/KaspiOrderType";
 import KaspiOrderEntriesType from "../Types/Kaspi/KaspiOrderEntriesType";
 import KaspiOrderEntryProductType from "../Types/Kaspi/KaspiOrderEntryProductType";
-import KaspiOrderEntryDeliveryPointOfServiceType from "../Types/Kaspi/KaspiOrderEntryDeliveryPointOfServiceType";
-import Helper from "sosise-core/build/Helper/Helper";
 import NoNewOrdersException from "../Exceptions/NoNewOrdersException";
+
 
 export default class GetNewOrdersFromKaspiService {
     protected kaspiBankApiRepository: KaspiBankApiRepositoryInterface;
     protected localStorageRepository: LocalStorageRepositoryInterface;
     protected retailCrmApiRepository: RetailCrmApiRepositoryInterface;
     protected lsApiRepository: LsApiRepositoryInterface;
-    protected loggerToDbService: LoggerToDbService;
     protected logger: LoggerService;
+
+
 
     /**
      * Constructor
@@ -35,7 +34,6 @@ export default class GetNewOrdersFromKaspiService {
         this.localStorageRepository = localStorageRepository;
         this.retailCrmApiRepository = retailCrmApiRepository;
         this.lsApiRepository = LsApiRepository;
-        this.loggerToDbService = IOC.make(LoggerToDbService) as LoggerToDbService;
         this.logger = IOC.make(LoggerService) as LoggerService;
     }
 
@@ -50,10 +48,13 @@ export default class GetNewOrdersFromKaspiService {
         // Save orders to kaspi tables
         const savedOrders = await this.saveOrdersToKaspiTables(orders);
 
-        // // Convert orders and save to crm tabes
-        // await this.saveOrdersToCrmTables(savedOrders);
+        // Convert orders and save to crm tabes
+        await this.saveOrdersToCrmTables(savedOrders);
     }
 
+    /**
+     * Save orders to kaspi tables
+     */
     protected async saveOrdersToKaspiTables(orders: KaspiOrderType[]): Promise<KaspiOrderType[]> {
 
         const savedOrders = new Array();
@@ -61,14 +62,6 @@ export default class GetNewOrdersFromKaspiService {
 
         // Prepare orders to save
         for (const order of orders) {
-
-            // Get order from db
-            let localOrder = await this.localStorageRepository.getOrderByKaspiId(order.id);
-            
-            // Check is null
-            if (!isNull(localOrder)) {
-                continue;
-            }
 
             // Push to promises
             saveOrderPromises.push(this.localStorageRepository.saveKaspiOrder(order));
@@ -87,8 +80,8 @@ export default class GetNewOrdersFromKaspiService {
 
         // Push to promises
         await Promise.all(saveOrderPromises);
-        
-        this.logger.info('[GET NEW ORDERS FROM KASPI] Saving orders completed successfully');
+
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Saving orders to kaspi tables completed successfully');
 
         return savedOrders;
     }
@@ -115,24 +108,89 @@ export default class GetNewOrdersFromKaspiService {
     }
 
     /**
+     * Convert orders and save to crm tables
+     */
+    protected async saveOrdersToCrmTables(orders: KaspiOrderType[]): Promise<void> {
+
+        // Get and concat customer id ls to order
+        const ordersWithCustomerIdLs = await this.getAndConcatCustomerIdLsToOrder(orders);
+
+        // Sve orders
+        await this.saveCrmOrders(ordersWithCustomerIdLs);
+
+        // Log
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Finish');
+    }
+
+    /**
+     * Get and concat customer id ls
+     */
+    private async getAndConcatCustomerIdLsToOrder(orders: KaspiOrderType[]): Promise<KaspiOrderType[]> {
+        // Log
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Start of receiving customer id from loyalty system');
+
+        const getCustomerIdLsPromise = new Array();
+
+        for (const order of orders) {
+            // Get customer id_ls from loyalty system
+            getCustomerIdLsPromise.push(this.lsApiRepository.getCustomerIdLs(order.attributes.customer));
+        }
+
+        // Run getCustomersIdLs promise
+        const customersIdLs = await Promise.allSettled(getCustomerIdLsPromise);
+
+        // Set idLs for all order
+        for (const [key, order] of Object.entries(orders)) {
+            // Set id_ls
+            order.attributes.customer.idLs = lodash.get(customersIdLs[key], 'value', null);
+        }
+
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Customer id ls received successfully');
+
+        return orders;
+    }
+
+    private async saveCrmOrders(orders: KaspiOrderType[]): Promise<void> {
+
+        // Log
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Start convert and save orders to all crm order tables');
+
+        for (const order of orders) {
+            await this.localStorageRepository.saveCrmOrder(order);
+        }
+
+        // Log
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Saving orders to crm tables completed successfully');
+    }
+
+    /**
      * Get entries and concat to order
      */
     private async getEntriesAndConcatToOrder(orders: KaspiOrderType[]): Promise<KaspiOrderType[]> {
         // Get entries
-        const getEntriesPromise = new Array();
+
+        const ordersWithEntries = new Array();
+        /**
+         * Attention! Don't call asynchronously. Kaspi returns 429 error code
+         */
         for (const order of orders) {
-            getEntriesPromise.push(this.getEntriesOfOneOrder(order));
+
+            // Get order from db
+            const localOrder = await this.localStorageRepository.getOrderByKaspiId(order.id);
+
+            // Skip if the order already exists
+            if (!isNull(localOrder)) {
+                continue;
+            }
+
+            try {
+                order.entries = await this.getEntriesOfOneOrder(order);
+                ordersWithEntries.push(order);
+            } catch (error) {
+                this.logger.error(`An error occured while retrieving order entries, order code: ${order.attributes.code}`, error);
+            }
         }
-
-        // Run getEntries promise
-        const getEntriesPromiseResult = await Promise.all(getEntriesPromise);
-
-        // Concat entries to order
-        for (const [key, order] of Object.entries(orders)) {
-            order.entries = getEntriesPromiseResult[key];
-        }
-
-        return orders;
+        return ordersWithEntries;
     }
 
     /**
@@ -148,7 +206,7 @@ export default class GetNewOrdersFromKaspiService {
         for (const entry of entries) {
             getEntriesPromise.push(this.getEntryProduct(entry, order.store));
             getEntriesPromise.push(this.kaspiBankApiRepository.getEntryDeliveryPointOfServices(entry, order.store));
-        };
+        }
 
         const getEntriesPromisesResult = await Promise.all(getEntriesPromise);
 

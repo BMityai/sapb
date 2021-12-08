@@ -1,6 +1,5 @@
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import AdminAuthUnifier from "../../Unifiers/Adminhtml/AdminAuthUnifier";
-import LoggerToDbService from "../LoggerToDbService";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import AdminUserNotFoundException from "../../Exceptions/AdminUserNotFoundException";
@@ -14,15 +13,13 @@ export default class AuthService {
 
     protected localStorageRepository: AuthRepositoryInterface;
     protected loggerService: LoggerService;
-    protected loggerToDbService: LoggerToDbService;
 
     /**
      * Constructor
      */
-    public constructor(localStorageRepository: AuthRepositoryInterface, loggerService: LoggerService, loggerToDbService: LoggerToDbService) {
+    public constructor(localStorageRepository: AuthRepositoryInterface, loggerService: LoggerService) {
         this.localStorageRepository = localStorageRepository;
         this.loggerService = loggerService;
-        this.loggerToDbService = loggerToDbService;
     }
 
     /**
@@ -40,7 +37,7 @@ export default class AuthService {
             const passwordIsValid = await bcrypt.compare(params.password, user.password);
 
             if (!passwordIsValid) {
-                throw new PasswordIsNotValidException('Password is not valid', user.login);
+                throw new PasswordIsNotValidException('Password is not valid', user.username);
             }
             const token = jwt.sign(
                 { id: user.id },
