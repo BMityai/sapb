@@ -22,6 +22,11 @@ import UnfinishedOrdersType from '../../Types/Kaspi/UnfinishedOrdersType';
 import OrderStatusesChangeType from '../../Types/Kaspi/OrderStatusesChangeType';
 import KaspiOrderStatesEnum from '../../Enums/KaspiOrderStatesEnum';
 import OrderForSetWayBillLinkType from '../../Types/Kaspi/OrderForSetWayBillLinkType';
+import OrderNotFoundException from '../../Exceptions/OrderNotFoundException';
+import OrderForChangeStatusType from '../../Types/Crm/OrderForChangeStatusType';
+import Helper from 'sosise-core/build/Helper/Helper';
+import CrmOrderItemType from '../../Types/Crm/LocalOrderItemType';
+import LocalOrderItemType from '../../Types/Crm/LocalOrderItemType';
 
 
 
@@ -282,13 +287,100 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
     /**
      * Get order crm status by kaspi status (from mapping table)
      */
-    public async getOrderCrmStatusByKaspiStatus(kaspiStatus: string): Promise<string> {
+    public async getOrderCrmStatusByKaspiStatus(kaspiStatus: string): Promise<string | null> {
         const warehouse = await this.dbConnection.client
             .table('status_mapping')
             .where('kaspi_status', kaspiStatus)
             .first();
 
         return lodash.get(warehouse, 'crm_status', null);
+    }
+
+    /**
+     * Get order kaspi status by crm status (from mapping table)
+     */
+    public async getOrderKaspiStatusByCrmStatus(crmStatus: string): Promise<string | null> {
+        const warehouse = await this.dbConnection.client
+            .table('status_mapping')
+            .where('crm_status', crmStatus)
+            .first();
+
+        return lodash.get(warehouse, 'kaspi_status', null);
+    }
+
+    /**
+     * Get order by number
+     */
+    public async getOrderByNumber(orderNumber: string): Promise<OrderForChangeStatusType | null> {
+
+        // Get order
+        const order = await this.dbConnection.client
+            .table('crm_orders')
+            .select([
+                'orders.appStatus',
+                'orders.id',
+                'crm_orders.crmId',
+                'crm_orders.status as crmOrderStatus',
+                'crm_orders.number as orderNumber',
+                'orders.site',
+                'kaspi_orders.kaspiId',
+                'kaspi_orders.state as kaspiState',
+                'kaspi_orders.status as kaspiOrderStatus',
+            ])
+            .innerJoin('kaspi_orders', 'crm_orders.order_id', 'kaspi_orders.order_id')
+            .innerJoin('orders', 'crm_orders.order_id', 'orders.id')
+            .where('crm_orders.number', orderNumber)
+            .first();
+
+        // Check is empty
+        if (!order) {
+            return null;
+        }
+
+        return order;
+    }
+
+    /**
+     * Get order items by order number
+     */
+    public async getOrderItemsByOrderNumber(orderNumber: string): Promise<CrmOrderItemType[]> {
+
+        // Get order
+        const items = await this.dbConnection.client
+            .table('crm_orders')
+            .select([
+                'crm_order_items.quantity as qty',
+                'crm_order_item_offers.xmlId as xmlId',
+                'kaspi_order_products.entries_kaspi_id as entriesKaspiId',
+            ])
+            .innerJoin('crm_order_items', 'crm_orders.id', 'crm_order_items.crm_order_id')
+            .innerJoin('crm_order_item_offers', 'crm_order_items.id', 'crm_order_item_offers.crm_order_item_id')
+            .innerJoin('kaspi_order_merchant_products', 'crm_order_item_offers.xmlId', 'kaspi_order_merchant_products.code')
+            .innerJoin('kaspi_order_products', 'kaspi_order_merchant_products.kaspi_order_product_id', 'kaspi_order_products.id')
+            .where('crm_orders.number', orderNumber);
+
+        return items;
+    }
+
+    /**
+     * Update item qty
+     */
+    public async updateItemQty(item: LocalOrderItemType): Promise<void> {
+
+        // Update qty
+        await this.dbConnection.client
+            .table('kaspi_order_products')
+            .innerJoin('kaspi_order_merchant_products', 'kaspi_order_products.id', 'kaspi_order_merchant_products.kaspi_order_product_id')
+            .innerJoin('crm_order_item_offers', 'kaspi_order_merchant_products.code', 'crm_order_item_offers.xmlId')
+            .innerJoin('crm_order_items', 'crm_order_item_offers.crm_order_item_id', 'crm_order_items.id')
+            .where('kaspi_order_products.entries_kaspi_id', item.entriesKaspiId)
+            .update({
+                'crm_order_items.quantity': item.qty,
+                'crm_order_items.updated_at': new Date(),
+
+                'kaspi_order_products.quantity': item.qty,
+                'kaspi_order_products.updated_at': new Date()
+            });
     }
 
     /**
@@ -533,6 +625,37 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
             .whereNotIn('kaspi_orders.status', [KaspiOrderStatusesEnum.canceled, KaspiOrderStatusesEnum.completed]);
     }
 
+    /**
+     * Change order status in Crm
+     */
+    public async changeOrderStatuses(order: OrderForChangeStatusType): Promise<void> {
+
+        let cancellationReason: string | null = null;
+
+        if (order.kaspiOrderStatus === KaspiOrderStatusesEnum.canceled || order.kaspiOrderStatus === KaspiOrderStatusesEnum.canceling) {
+            cancellationReason = 'MERCHANT_OUT_OF_STOCK';
+        }
+
+        // Save order
+        this.dbConnection.client.table('crm_orders')
+            .innerJoin('orders', 'crm_orders.order_id', 'orders.id')
+            .innerJoin('kaspi_orders', 'orders.id', 'kaspi_orders.order_id')
+            .where('crm_orders.number', order.orderNumber)
+            .update({
+                'orders.crmStatus': order.crmOrderStatus,
+                'orders.kaspiStatus': order.kaspiOrderStatus,
+                'orders.appStatus': order.appStatus,
+                'orders.updated_at': new Date(),
+
+                'kaspi_orders.status': order.kaspiOrderStatus,
+                'kaspi_orders.state': order.kaspiState,
+                'kaspi_orders.cancellationReason': cancellationReason,
+                'kaspi_orders.updated_at': new Date(),
+
+                'crm_orders.status': order.crmOrderStatus,
+                'crm_orders.updated_at': new Date(),
+            });
+    }
 
     /**
      * Get order products for export
@@ -848,6 +971,4 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
         }
         return dayjs(date).format('YYYY-MM-DD');
     }
-
-
 }

@@ -1,3 +1,4 @@
+import CrmOrderItemType from "../../Types/Crm/CrmOrderItemType";
 import ExportedOrdersInfoType from "../../Types/Crm/ExportedOrdersInfoType";
 import OrderForExportType from "../../Types/Crm/OrderForExportType";
 import OrderForSetWayBillLinkType from "../../Types/Kaspi/OrderForSetWayBillLinkType";
@@ -17,4 +18,9 @@ export default interface RetailCrmApiRepositoryInterface {
      * Set waybill link
      */
     setWayBillLink(order: OrderForSetWayBillLinkType): Promise<OrderForSetWayBillLinkType>;
+
+    /**
+     * Get order items by crm id
+     */
+    getOrderItemsByOrderCrmId(id: number, site: string): Promise<CrmOrderItemType[]>;
 }

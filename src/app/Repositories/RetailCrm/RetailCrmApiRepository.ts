@@ -9,6 +9,7 @@ import Helper from "sosise-core/build/Helper/Helper";
 import UnfinishedOrdersType from "../../Types/Kaspi/UnfinishedOrdersType";
 import ParamsForOrderStatusChangeInCrmType from "../../Types/Kaspi/ParamsForOrderStatusChangeInCrmType";
 import OrderForSetWayBillLinkType from "../../Types/Kaspi/OrderForSetWayBillLinkType";
+import CrmOrderItemType from "../../Types/Crm/CrmOrderItemType";
 
 
 export default class RetailCrmApiRepository implements RetailCrmApiRepositoryInterface {
@@ -119,6 +120,30 @@ export default class RetailCrmApiRepository implements RetailCrmApiRepositoryInt
         }
 
         return order;
+    }
+
+    /**
+     * Get order items by crm id
+     */
+    public async getOrderItemsByOrderCrmId(id: number, site: string): Promise<CrmOrderItemType[]> {
+        const url = `${RetailCrmApiRepository.API_PREFIX}/orders/${id}`;
+        const params = {
+            apiKey: this.apiKey,
+            site,
+            by: 'id',
+        };
+        const response = await this.makeRequest(url, 'GET', params);
+
+        // Typecast
+        const preparedItems = new Array();
+        for(const item of response.data.order.items) {
+            preparedItems.push({
+                xmlId: item.offer.xmlId,
+                status: item.status,
+                qty: item.quantity
+            });
+        }
+        return preparedItems;
     }
 
     /**

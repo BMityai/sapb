@@ -11,15 +11,13 @@ import KaspiOrderEntriesType from "../Types/Kaspi/KaspiOrderEntriesType";
 import KaspiOrderEntryProductType from "../Types/Kaspi/KaspiOrderEntryProductType";
 import NoNewOrdersException from "../Exceptions/NoNewOrdersException";
 
-
 export default class GetNewOrdersFromKaspiService {
+
     protected kaspiBankApiRepository: KaspiBankApiRepositoryInterface;
     protected localStorageRepository: LocalStorageRepositoryInterface;
     protected retailCrmApiRepository: RetailCrmApiRepositoryInterface;
     protected lsApiRepository: LsApiRepositoryInterface;
     protected logger: LoggerService;
-
-
 
     /**
      * Constructor
@@ -115,8 +113,15 @@ export default class GetNewOrdersFromKaspiService {
         // Get and concat customer id ls to order
         const ordersWithCustomerIdLs = await this.getAndConcatCustomerIdLsToOrder(orders);
 
-        // Sve orders
-        await this.saveCrmOrders(ordersWithCustomerIdLs);
+        // Save orders
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Start convert and save orders to all crm order tables');
+
+        for (const order of ordersWithCustomerIdLs) {
+            await this.localStorageRepository.saveCrmOrder(order);
+        }
+
+        // Log
+        this.logger.info('[GET NEW ORDERS FROM KASPI] Saving orders to crm tables completed successfully');
 
         // Log
         this.logger.info('[GET NEW ORDERS FROM KASPI] Finish');
@@ -150,6 +155,9 @@ export default class GetNewOrdersFromKaspiService {
         return orders;
     }
 
+    /**
+     * Save crm order to crm tables
+     */
     private async saveCrmOrders(orders: KaspiOrderType[]): Promise<void> {
 
         // Log

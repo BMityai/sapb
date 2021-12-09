@@ -1,6 +1,5 @@
 import OrderForExportProductType from "./OrderForExportProductType";
 
-
 export default interface OrderForExportType {
     id: number;
     site: string;

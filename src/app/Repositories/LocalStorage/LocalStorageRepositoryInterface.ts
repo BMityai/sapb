@@ -1,3 +1,6 @@
+import LocalOrderItemType from "../../Types/Crm/LocalOrderItemType";
+import CrmOrderItemType from "../../Types/Crm/LocalOrderItemType";
+import OrderForChangeStatusType from "../../Types/Crm/OrderForChangeStatusType";
 import OrderForExportType from "../../Types/Crm/OrderForExportType";
 import KaspiOrderType from "../../Types/Kaspi/KaspiOrderType";
 import OrderForSetWayBillLinkType from "../../Types/Kaspi/OrderForSetWayBillLinkType";
@@ -19,7 +22,7 @@ export default interface LocalStorageRepositoryInterface {
     /**
      * Get order crm status by kaspi status (from mapping table)
      */
-    getOrderCrmStatusByKaspiStatus(kaspiStatus: string): Promise<string>;
+    getOrderCrmStatusByKaspiStatus(kaspiStatus: string): Promise<string | null>;
 
     /**
      * Convert and save new orders from kaspi
@@ -65,4 +68,29 @@ export default interface LocalStorageRepositoryInterface {
      * Set waybill link
      */
     setWayBillLink(order: OrderForSetWayBillLinkType): Promise<void>;
+
+    /**
+     * Get order kaspi status by crm status (from mapping table)
+     */
+    getOrderKaspiStatusByCrmStatus(crmStatus: string): Promise<string | null>;
+
+    /**
+     * Get order by number
+     */
+    getOrderByNumber(orderNumber: string): Promise<OrderForChangeStatusType | null>;
+
+    /**
+     * Change order status in Crm
+     */
+    changeOrderStatuses(order: OrderForChangeStatusType): Promise<void>;
+
+    /**
+     * Get order items by order number
+     */
+    getOrderItemsByOrderNumber(orderNumber: string): Promise<CrmOrderItemType[]>;
+
+    /**
+     * Update item qty
+     */
+    updateItemQty(item: LocalOrderItemType): Promise<void>;
 }

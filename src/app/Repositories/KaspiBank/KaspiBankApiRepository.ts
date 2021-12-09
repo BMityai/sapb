@@ -17,6 +17,8 @@ import KaspiOrderEntryDeliveryPointOfServiceType from "../../Types/Kaspi/KaspiOr
 import KaspiOrderEntryMerchantProductType from "../../Types/Kaspi/KaspiOrderEntryMerchantProductType";
 import KaspiOrderStatusType from "../../Types/Kaspi/KaspiOrderStatusType";
 import ReturnRequestedOrReturnedOrderType from "../../Types/Kaspi/ReturnRequestedOrReturnedOrderType";
+import OrderForChangeStatusType from "../../Types/Crm/OrderForChangeStatusType";
+import LocalOrderItemType from "../../Types/Crm/LocalOrderItemType";
 
 
 
@@ -397,7 +399,6 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         // Get orders
         const orders = lodash.get(response, 'data.data', []);
 
-
         if (isEmpty(orders)) {
             return [];
         }
@@ -432,6 +433,65 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         const response = await this.makeRequest(uri, 'GET', null, null, headers);
 
         return lodash.get(response, 'data.data.attributes.kaspiDelivery.waybill', null);
+    }
+
+    /**
+     * Change order status
+     */
+    public async changeOrderStatus(orderFromLocalDb: OrderForChangeStatusType): Promise<void> {
+        const attributes: {
+            status: string;
+            cancellationReason?: string;
+        } = {
+            status: orderFromLocalDb.kaspiOrderStatus
+        };
+
+        if (orderFromLocalDb.kaspiOrderStatus === KaspiOrderStatusesEnum.canceled || orderFromLocalDb.kaspiOrderStatus === KaspiOrderStatusesEnum.canceling) {
+            attributes.cancellationReason = 'MERCHANT_OUT_OF_STOCK';
+        }
+
+        const body = {
+            data: {
+                type: 'orders',
+                id: orderFromLocalDb.kaspiId,
+                attributes
+            }
+        };
+
+        // Get headers
+        const headers = this.getHeaders(orderFromLocalDb.site);
+
+        // Send request
+        await this.makeRequest('orders', 'POST', null, body, headers);
+    }
+
+    /**
+     * Update item qty
+     */
+    public async updateItemQty(item: LocalOrderItemType, site: string): Promise<void> {
+        const body = {
+            data: {
+                type: 'orderEntryCancelOperation',
+                attributes: {
+                    notes: 'Нет в наличии',
+                    remainedQuantity: item.qty,
+                    reason: 'MERCHANT_OUT_OF_STOCK'
+                },
+                relationships: {
+                    entry: {
+                        data: {
+                            type: 'orderentries',
+                            id: item.entriesKaspiId
+                        }
+                    }
+                }
+            }
+        };
+
+        // Get headers
+        const headers = this.getHeaders(site);
+
+        await this.makeRequest('orderEntryCancelOperation', 'POST', null, body, headers);
     }
 
     /**

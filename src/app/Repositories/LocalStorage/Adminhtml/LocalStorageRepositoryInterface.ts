@@ -1,4 +1,5 @@
 import AdminUserType from "../../../Types/AdminUserType";
+import OrdersCountInfoType from "../../../Types/OrdersCountInfoType";
 import SaveNewStatusesType from "../../../Types/SaveNewStatuseType";
 import SaveNewWarehouseType from "../../../Types/SaveNewWarehouseType";
 import StatusMappingType from "../../../Types/StatusMappingType";
@@ -61,5 +62,25 @@ export default interface LocalStorageRepositoryInterface {
      * Save new warehouses
      */
     saveNewWarehouses(data: SaveNewWarehouseType[]): Promise<void>;
+
+    /**
+     * Get data on the number of orders for dashboard
+     */
+    getDataOnTheNumberOfOrders(): Promise<OrdersCountInfoType>;
+
+    /**
+     * Get all orders by month
+     */
+    getAllOrdersByMonth(currentMonthNumber: number): Promise<number[]>;
+
+    /**
+     * Get completed orders by month
+     */
+    getCompletedOrdersByMonth(currentMonthNumber: number): Promise<number[]>;
+
+    /**
+     * Get canceled orders by month
+     */
+    getCanceledOrdersByMonth(currentMonthNumber: number): Promise<number[]>;
 
 }

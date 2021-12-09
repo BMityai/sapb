@@ -1,3 +1,5 @@
+import LocalOrderItemType from "../../Types/Crm/LocalOrderItemType";
+import OrderForChangeStatusType from "../../Types/Crm/OrderForChangeStatusType";
 import KaspiOrderEntriesType from "../../Types/Kaspi/KaspiOrderEntriesType";
 import KaspiOrderEntryDeliveryPointOfServiceType from "../../Types/Kaspi/KaspiOrderEntryDeliveryPointOfServiceType";
 import KaspiOrderEntryMerchantProductType from "../../Types/Kaspi/KaspiOrderEntryMerchantProductType";
@@ -57,4 +59,14 @@ export default interface KaspiBankApiRepositoryInterface {
      * Get order waybill link
      */
     getWaybillLinkByKaspiId(kaspiId: string, site: string): Promise<string | null>;
+
+    /**
+     * Change order status
+     */
+    changeOrderStatus(orderFromLocalDb: OrderForChangeStatusType): Promise<void>;
+
+    /**
+     * Update item qty
+     */
+    updateItemQty(item: LocalOrderItemType, site: string): Promise<void>;
 }

@@ -11,9 +11,11 @@ import AuthService from "../app/Services/Adminhtml/AuthService";
 import DashboardService from "../app/Services/Adminhtml/DashboardService";
 import StatusMappingService from "../app/Services/Adminhtml/StatusMappingService";
 import WarehouseMappingService from "../app/Services/Adminhtml/WarehouseMappingService";
+import ChangeOrderStatusFromCrmService from "../app/Services/ChangeOrderStatusFromCrmService";
 import ExportOrdersService from "../app/Services/ExportOrdersService";
 import GetChangesFromKaspiService from "../app/Services/GetChangesFromKaspiService";
 import GetNewOrdersFromKaspiService from "../app/Services/GetNewOrdersFromKaspiService";
+import PartialCancellationService from "../app/Services/PartialCancellationService";
 
 /**
  * IOC Config, please register here your services
@@ -99,6 +101,24 @@ const iocConfig = {
         // GetChangesFromKaspiService service
         GetChangesFromKaspiService: () => {
             return new GetChangesFromKaspiService(
+                new LocalStorageRepository(),
+                new KaspiBankApiRepository(),
+                new RetailCrmApiRepository()
+            );
+        },
+
+        // ChangeOrderStatusFromCrmService service
+        ChangeOrderStatusFromCrmService: () => {
+            return new ChangeOrderStatusFromCrmService(
+                new LocalStorageRepository(),
+                new KaspiBankApiRepository(),
+                new RetailCrmApiRepository()
+            );
+        },
+
+        // ChangeOrderStatusFromCrmService service
+        PartialCancellationService: () => {
+            return new PartialCancellationService(
                 new LocalStorageRepository(),
                 new KaspiBankApiRepository(),
                 new RetailCrmApiRepository()

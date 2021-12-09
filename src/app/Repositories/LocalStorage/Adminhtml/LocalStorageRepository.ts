@@ -9,6 +9,9 @@ import SaveNewWarehouseType from '../../../Types/SaveNewWarehouseType';
 import CreateUserUnifier from '../../../Unifiers/Adminhtml/CreateUserUnifier';
 import bcrypt from 'bcrypt';
 import Helper from 'sosise-core/build/Helper/Helper';
+import OrdersCountInfoType from '../../../Types/OrdersCountInfoType';
+import OrderAppStatusesEnum from '../../../Enums/OrderAppStatusesEnum';
+import dayjs from 'dayjs';
 
 
 export default class LocalStorageRepository implements LocalStorageRepositoryInterface {
@@ -112,7 +115,7 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
             username: user.username,
             email: user.email,
             status: user.status,
-            createdAt:user.created_at
+            createdAt: user.created_at
         };
     }
 
@@ -188,6 +191,158 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
      */
     public async saveNewWarehouses(data: SaveNewWarehouseType[]): Promise<void> {
         await this.dbClient.table('warehouse_mapping').insert(data);
+    }
+
+    /**
+     * Get data on the number of orders for dashboard
+     */
+    public async getDataOnTheNumberOfOrders(): Promise<OrdersCountInfoType> {
+
+        const result = await this.dbClient.raw(`
+            SELECT 
+                COUNT(id) AS allOrders,
+                SUM(if(created_at > '${dayjs().format('YYYY-MM-DD')}', 1, 0)) AS today,
+                SUM(if(appStatus = '${OrderAppStatusesEnum.completed}', 1, 0)) AS completed,
+                SUM(if(appStatus = '${OrderAppStatusesEnum.canceled}', 1, 0)) AS canceled
+            FROM orders
+        `);
+
+        return result[0][0];
+    }
+
+    /**
+     * Get all orders by month
+     */
+    public async getAllOrdersByMonth(currentMonthNumber: number): Promise<number[]> {
+
+        // Get month range
+        const monthNumberRange = this.getMonthNumberRange(currentMonthNumber);
+
+        // Generate query
+        let query = `SELECT `;
+        for (const [key, monthNumber] of Object.entries(monthNumberRange)) {
+
+            if (monthNumber === 12) {
+                query += `(SELECT COUNT(*) FROM orders WHERE created_at > '${dayjs().format('YYYY')}-${monthNumber}-01') as '${monthNumber}'`;
+            } else {
+                query += `(SELECT COUNT(*) FROM orders WHERE created_at > '${dayjs().format('YYYY')}-${monthNumber}-01' AND created_at < '${dayjs().format('YYYY')}-${monthNumber + 1}-01') as '${monthNumber}'`;
+            }
+
+            if (Number(key) + 1 !== monthNumberRange.length) {
+                query += ', ';
+            } else {
+                query += ' ';
+            }
+        }
+        query += `FROM orders`;
+        // Make request
+        const result = await this.dbClient.raw(query);
+
+        const preparedData = new Array();
+
+        for(const [monthNumber, count] of Object.entries(result[0][0])) {
+            preparedData.push(count);
+        }
+
+        return preparedData;
+    }
+
+    /**
+     * Get completed orders by month
+     */
+    public async getCompletedOrdersByMonth(currentMonthNumber: number): Promise<number[]> {
+
+        // Get month range
+        const monthNumberRange = this.getMonthNumberRange(currentMonthNumber);
+
+        // Generate query
+        let query = `SELECT `;
+        for (const [key, monthNumber] of Object.entries(monthNumberRange)) {
+
+            if (monthNumber === 12) {
+                query += `(SELECT COUNT(*) FROM orders WHERE created_at > '${dayjs().format('YYYY')}-${monthNumber}-01' AND appStatus = '${OrderAppStatusesEnum.completed}') as '${monthNumber}'`;
+            } else {
+                query += `(SELECT COUNT(*) FROM orders WHERE created_at > '${dayjs().format('YYYY')}-${monthNumber}-01' AND created_at < '${dayjs().format('YYYY')}-${monthNumber + 1}-01' AND appStatus = '${OrderAppStatusesEnum.completed}') as '${monthNumber}'`;
+            }
+
+            if (Number(key) + 1 !== monthNumberRange.length) {
+                query += ', ';
+            } else {
+                query += ' ';
+            }
+        }
+        query += `FROM orders`;
+        // Make request
+        const result = await this.dbClient.raw(query);
+
+        const preparedData = new Array();
+
+        for(const [monthNumber, count] of Object.entries(result[0][0])) {
+            preparedData.push(count);
+        }
+
+        return preparedData;
+    }
+
+    /**
+     * Get canceled orders by month
+     */
+    public async getCanceledOrdersByMonth(currentMonthNumber: number): Promise<number[]> {
+
+        // Get month range
+        const monthNumberRange = this.getMonthNumberRange(currentMonthNumber);
+
+        // Generate query
+        let query = `SELECT `;
+        for (const [key, monthNumber] of Object.entries(monthNumberRange)) {
+
+            if (monthNumber === 12) {
+                query += `(SELECT COUNT(*) FROM orders WHERE created_at > '${dayjs().format('YYYY')}-${monthNumber}-01' AND appStatus = '${OrderAppStatusesEnum.canceled}') as '${monthNumber}'`;
+            } else {
+                query += `(SELECT COUNT(*) FROM orders WHERE created_at > '${dayjs().format('YYYY')}-${monthNumber}-01' AND created_at < '${dayjs().format('YYYY')}-${monthNumber + 1}-01' AND appStatus = '${OrderAppStatusesEnum.canceled}') as '${monthNumber}'`;
+            }
+
+            if (Number(key) + 1 !== monthNumberRange.length) {
+                query += ', ';
+            } else {
+                query += ' ';
+            }
+        }
+        query += `FROM orders`;
+        // Make request
+        const result = await this.dbClient.raw(query);
+
+        const preparedData = new Array();
+
+        for(const [monthNumber, count] of Object.entries(result[0][0])) {
+            preparedData.push(count);
+        }
+
+        return preparedData;
+    }
+
+    /**
+     * Get month number range
+     */
+    private getMonthNumberRange(currentMonthNumber: number): number[] {
+        const range = new Array();
+        let firstMonthNumber = 0;
+
+        // Starting in October
+        if (currentMonthNumber < 3) {
+            firstMonthNumber = 9
+        }
+        while (firstMonthNumber !== currentMonthNumber) {
+            firstMonthNumber += 1;
+
+            if (firstMonthNumber == 13) {
+                firstMonthNumber = 1;
+            }
+
+            range.push(firstMonthNumber);
+        }
+
+        return range;
     }
 
 }

@@ -1,4 +1,3 @@
-
 export default interface OrderStatusesChangeType {
     id: number;
     appStatus: string;

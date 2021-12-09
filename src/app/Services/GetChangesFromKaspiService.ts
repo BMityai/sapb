@@ -1,5 +1,4 @@
 import { isNull } from "lodash";
-import Helper from "sosise-core/build/Helper/Helper";
 import IOC from "sosise-core/build/ServiceProviders/IOC";
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import storesConfig from "../../config/stores";

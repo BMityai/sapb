@@ -1,8 +1,11 @@
 
+import dayjs from "dayjs";
+import Helper from "sosise-core/build/Helper/Helper";
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import LocalStorageRepositoryInterface from "../../Repositories/LocalStorage/Adminhtml/LocalStorageRepositoryInterface";
 import GetAllOrdersInfoForDashboardType from "../../Types/GetAllOrdersInfoForDashboardType";
 import GetOrdersResponseType from "../../Types/GetOrdersResponseType";
+import OrdersCountInfoByMonthType from "../../Types/OrdersCountInfoByMonthType";
 import OrdersInfoForTheLastYearForDashboardType from "../../Types/OrdersInfoForTheLastYearForDashboardType";
 
 export default class DashboardService {
@@ -23,14 +26,7 @@ export default class DashboardService {
      */
     public async getAllOrdersInfo(): Promise<GetAllOrdersInfoForDashboardType> {
 
-        // @todo нужно доработать, получать данные из БД
-
-        return {
-            allOrders: 785,
-            today: 21,
-            completed: 365,
-            canceled: 254
-        };
+        return await this.localStorageRepository.getDataOnTheNumberOfOrders();
     }
 
     /**
@@ -38,27 +34,15 @@ export default class DashboardService {
      */
     public async getOrdersInfoForTheLastYear(): Promise<OrdersInfoForTheLastYearForDashboardType> {
 
-        const result = {
-            labels: [
-                "январь",
-                "февраль",
-                "март",
-                "апрель",
-                "май",
-                "июнь",
-                "июль",
-                "август",
-                "сентябрь",
-                "октябрь",
-                "ноябрь",
-                "декабрь",
-            ],
-            datasets: {
-                all: [250, 260, 500, 400, 356, 245, 652, 235, 589, 789, 257, 985],
-                completed: [211, 215, 488, 352, 352, 198, 600, 215, 500, 659, 199, 895],
-                canceled: [39, 45, 62, 48, 4, 47, 52, 20, 89, 130, 58, 90]
-            }
+        // Get last months list
+        const months = this.getMonths();
 
+        // Get status data
+        const datasets = await this.getOrdersStatusData();
+
+        const result = {
+            labels: months,
+            datasets
         };
 
         return result;
@@ -159,5 +143,54 @@ export default class DashboardService {
         };
 
         return response;
+    }
+
+    /**
+     * Get last month list
+     */
+    private getMonths(): string[] {
+
+        // All months
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+
+        // Get current month number
+        const currentMonthNumber = this.getCurrentMonthNumber();
+
+        // Get last month list
+        let result = monthNames.slice(0, currentMonthNumber);
+        if(currentMonthNumber < 3) {
+            const emptyMonthList = new Array();
+            result = emptyMonthList.concat(monthNames.slice(9, 12), result);
+        }
+
+        return result;
+    }
+
+    /**
+     * Get order status info by month
+     */
+    private async getOrdersStatusData(): Promise<OrdersCountInfoByMonthType> {
+
+        const promise = new Array();
+
+        promise.push(this.localStorageRepository.getAllOrdersByMonth(this.getCurrentMonthNumber()));
+        promise.push(this.localStorageRepository.getCompletedOrdersByMonth(this.getCurrentMonthNumber()));
+        promise.push(this.localStorageRepository.getCanceledOrdersByMonth(this.getCurrentMonthNumber()));
+    
+        const result = await Promise.all(promise);
+
+        return {
+            all: result[0],
+            completed: result[1],
+            canceled: result[2]
+        }
+    }
+
+    /**
+     * Get current month number
+     */
+    private getCurrentMonthNumber(): number {
+       return dayjs().month() + 1;
     }
 }

@@ -2,6 +2,7 @@ enum KaspiOrderStatusesEnum {
     approved = 'APPROVED_BY_BANK',
     accepted = 'ACCEPTED_BY_MERCHANT',
     canceled = 'CANCELLED',
+    canceling = 'CANCELLING',
     completed = 'COMPLETED',
     arrived = 'ARRIVED',
     returned = 'RETURNED',
