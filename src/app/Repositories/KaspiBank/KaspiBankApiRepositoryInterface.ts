@@ -69,4 +69,9 @@ export default interface KaspiBankApiRepositoryInterface {
      * Update item qty
      */
     updateItemQty(item: LocalOrderItemType, site: string): Promise<void>;
+
+    /**
+     * Get order by number
+     */
+    getOrderByNumber(orderNumber: string, site: string): Promise<KaspiOrderType | null>;
 }

@@ -10,6 +10,10 @@ import KaspiOrderType from "../Types/Kaspi/KaspiOrderType";
 import KaspiOrderEntriesType from "../Types/Kaspi/KaspiOrderEntriesType";
 import KaspiOrderEntryProductType from "../Types/Kaspi/KaspiOrderEntryProductType";
 import NoNewOrdersException from "../Exceptions/NoNewOrdersException";
+import ManualSyncUnifier from "../Unifiers/ManualSyncUnifier";
+import Helper from "sosise-core/build/Helper/Helper";
+import OrderNotFoundException from "../Exceptions/OrderNotFoundException";
+import Exception from "sosise-core/build/Artisan/Make/Exception";
 
 export default class GetNewOrdersFromKaspiService {
 
@@ -48,6 +52,90 @@ export default class GetNewOrdersFromKaspiService {
 
         // Convert orders and save to crm tabes
         await this.saveOrdersToCrmTables(savedOrders);
+    }
+
+    /**
+     * Sync manually created order in CRM
+     */
+    public async syncManuallyCreatedOrder(manualSyncUnifier: ManualSyncUnifier): Promise<void> {
+        // Log
+        this.logger.info('[SYNC_MANUALLY_CREATED_ORDER] Received a request from crm to synchronize an order created manually', manualSyncUnifier);
+
+        // Get order from kaspi
+        const orderFromKaspi = await this.getOrderFromKaspiByOrderNumber(manualSyncUnifier);
+
+        // Save order to kaspi tables
+        await this.saveOrderToKaspiTables(orderFromKaspi);
+
+        // Save order to kaspi tables
+        await this.saveOrderToCrmTables(orderFromKaspi);
+
+
+        await this.localStorageRepository.saveCrmOrder(orderFromKaspi);
+    }
+
+    /**
+     * Save order to kaspi tables
+     */
+    protected async saveOrderToKaspiTables(orderFromKaspi: KaspiOrderType) {
+        try {
+            
+            // Save order to kaspi tables
+            await this.localStorageRepository.saveKaspiOrder(orderFromKaspi);
+
+            // Log
+            this.logger.info(`[SYNC_MANUALLY_CREATED_ORDER] Saving order "KSP-${orderFromKaspi.attributes.code}" to crm tables completed successfully`);
+        } catch(error) {
+            
+            // Log
+            this.logger.error('[SYNC_MANUALLY_CREATED_ORDER] An error occured while saving order to crm_order tables', error);
+
+            throw new Exception(error)
+        }
+    }
+
+    /**
+     * Save order to crm tables
+     */
+    protected async saveOrderToCrmTables(orderFromKaspi: KaspiOrderType) {
+        try {
+            
+            // Save order to kaspi tables
+            await this.localStorageRepository.saveCrmOrder(orderFromKaspi);
+
+            // Log
+            this.logger.info(`[SYNC_MANUALLY_CREATED_ORDER] Saving order "KSP-${orderFromKaspi.attributes.code}" to kaspi tables completed successfully`);
+        } catch(error) {
+            
+            // Log
+            this.logger.error('[SYNC_MANUALLY_CREATED_ORDER] An error occured while saving order to kaspi_order tables', error);
+
+            throw new Exception(error)
+        }
+    }
+
+    /**
+     * Get order from kaspi by nnumber
+     */
+    protected async getOrderFromKaspiByOrderNumber(manualSyncUnifier: ManualSyncUnifier): Promise<KaspiOrderType> {
+        // Log
+        this.logger.info('[SYNC_MANUALLY_CREATED_ORDER] Starting to receive an order from the Kaspi');
+
+        // get order without entries
+        const ordersWithoutEntries = await this.kaspiBankApiRepository.getOrderByNumber(manualSyncUnifier.orderNumber, manualSyncUnifier.site);
+
+        // Check is null
+        if (isNull(ordersWithoutEntries)) {
+            throw new OrderNotFoundException();
+        }
+
+        // Get entries and concat to order
+        ordersWithoutEntries.entries = await this.getEntriesOfOneOrder(ordersWithoutEntries);
+
+        // Log
+        this.logger.info('[SYNC_MANUALLY_CREATED_ORDER] Order from kaspi received successfully', ordersWithoutEntries);
+
+        return ordersWithoutEntries;
     }
 
     /**

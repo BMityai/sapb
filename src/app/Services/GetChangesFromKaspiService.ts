@@ -71,7 +71,7 @@ export default class GetChangesFromKaspiService {
         // Sync with crm
         const response = await this.SyncUpdatedStatusesWithCrm(ordersForChange);
 
-        await this.updateUnfinishedOrdersInLocalStorage(response);
+        await this.updateOrdersInLocalStorage(response);
     }
 
     /**
@@ -94,7 +94,7 @@ export default class GetChangesFromKaspiService {
         // Sync with crm
         const response = await this.SyncUpdatedStatusesWithCrm(changedOrders);
 
-        await this.updateUnfinishedOrdersInLocalStorage(response);
+        await this.updateOrdersInLocalStorage(response);
     }
 
     /**
@@ -218,7 +218,7 @@ export default class GetChangesFromKaspiService {
     /**
      * Update order in local storage
      */
-    private async updateUnfinishedOrdersInLocalStorage(response: PromiseSettledResult<any>[]): Promise<void> {
+    private async updateOrdersInLocalStorage(response: PromiseSettledResult<any>[]): Promise<void> {
         const updateStatusesPromise = new Array();
         for (const result of response) {
             if (result.status === 'rejected') {
@@ -300,6 +300,7 @@ export default class GetChangesFromKaspiService {
                 continue;
             }
 
+            // Typecast
             const typedorder: UnfinishedOrdersType = {
                 id: localOrder.id,
                 crmId: localOrder.crmId,
@@ -312,7 +313,7 @@ export default class GetChangesFromKaspiService {
                 kaspiState: orderFromKaspi.kaspiState
             };
 
-            preparedOrders.push(orderFromKaspi);
+            preparedOrders.push(typedorder);
 
             // Log
             this.logger.info(`[GET CHANGES FROM KASPI] Detected a change ${localOrder.orderNumber} order status in the KASPI. The status will change from "${localOrder.kaspiOrderStatus}" to "${orderFromKaspi.kaspiStatus}"`);
@@ -386,6 +387,5 @@ export default class GetChangesFromKaspiService {
             this.logger.info(`[GET CHANGES FROM KASPI] Waybill link "${result.value.wayBillLink}" installed successfully to order ${result.value.orderNumber}`);
             await this.localStorageRepository.log(result.value.id, 'info', `[GET CHANGES FROM KASPI] waybill link installed successfully`);
         }
-
     }
 }

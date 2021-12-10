@@ -3,8 +3,10 @@ import Helper from 'sosise-core/build/Helper/Helper';
 import IOC from 'sosise-core/build/ServiceProviders/IOC';
 import HttpResponse from 'sosise-core/build/Types/HttpResponse';
 import ChangeOrderStatusFromCrmService from '../../Services/ChangeOrderStatusFromCrmService';
+import GetNewOrdersFromKaspiService from '../../Services/GetNewOrdersFromKaspiService';
 import PartialCancellationService from '../../Services/PartialCancellationService';
 import ChangeOrderStatusUnifier from '../../Unifiers/ChangeOrderStatusUnifier';
+import ManualSyncUnifier from '../../Unifiers/ManualSyncUnifier';
 import OrderPartialCancellationUnifier from '../../Unifiers/OrderPartialCancellationUnifier';
 
 export default class CrmController {
@@ -44,6 +46,32 @@ export default class CrmController {
 
         // Handle request
         await service.handle(partialCancellationUnifier);
+
+        try {
+            // Prepare http response
+            const httpResponse: HttpResponse = {
+                code: 1000,
+                message: 'Success',
+                data: null
+            };
+
+            // Send response
+            return response.send(httpResponse);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Cancel part of order
+     */
+    public async syncOrderByNumber(request: Request, response: Response, next: NextFunction) {
+
+        const manualSyncUnifier = new ManualSyncUnifier(request.body);
+        const service = IOC.make(GetNewOrdersFromKaspiService) as GetNewOrdersFromKaspiService;
+
+        // Handle request
+        await service.syncManuallyCreatedOrder(manualSyncUnifier);
 
         try {
             // Prepare http response

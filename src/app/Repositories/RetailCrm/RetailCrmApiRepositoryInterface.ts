@@ -23,4 +23,5 @@ export default interface RetailCrmApiRepositoryInterface {
      * Get order items by crm id
      */
     getOrderItemsByOrderCrmId(id: number, site: string): Promise<CrmOrderItemType[]>;
+
 }

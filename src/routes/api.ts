@@ -31,13 +31,18 @@ const contentTypeMiddleware = new CheckContentTypeMiddleware();
 const crmController = new CrmController();
 
 // Order status update
-router.post(`/api/${version}/status/update`, contentTypeMiddleware.handle, apiAuthMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+router.post(`/api/${version}/order/status`, contentTypeMiddleware.handle, apiAuthMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
     crmController.changeStatus(request, response, next);
 });
 
 // Order status update
-router.post(`/api/${version}/cancellation/partial`, contentTypeMiddleware.handle, apiAuthMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+router.post(`/api/${version}/order/items`, contentTypeMiddleware.handle, apiAuthMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
     crmController.cancelPartOfTheOrder(request, response, next);
+});
+
+// Get order
+router.post(`/api/${version}/order/manual_sync`, contentTypeMiddleware.handle, apiAuthMiddleware.handle, (request: Request, response: Response, next: NextFunction) => {
+    crmController.syncOrderByNumber(request, response, next);
 });
 
 export default router;

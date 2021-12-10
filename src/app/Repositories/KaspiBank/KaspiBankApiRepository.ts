@@ -6,7 +6,7 @@ import storesConfig from "../../../config/stores";
 import KaspiOrderStatesEnum from "../../Enums/KaspiOrderStatesEnum";
 import KaspiOrderStatusesEnum from "../../Enums/KaspiOrderStatusesEnum";
 import KaspiBankApiRepositoryInterface from "./KaspiBankApiRepositoryInterface";
-import lodash, { isEmpty, isNull } from 'lodash';
+import lodash, { isEmpty, isNull, isSet } from 'lodash';
 import KaspiRequestException from "../../Exceptions/KaspiRequestException";
 import RequestHeadersType from "../../Types/Kaspi/RequestHeadersType";
 import KaspiOrderType from "../../Types/Kaspi/KaspiOrderType";
@@ -492,6 +492,31 @@ export default class KaspiBankApiRepository implements KaspiBankApiRepositoryInt
         const headers = this.getHeaders(site);
 
         await this.makeRequest('orderEntryCancelOperation', 'POST', null, body, headers);
+    }
+
+    /**
+     * Get order by number
+     */
+    public async getOrderByNumber(orderNumber: string, site: string): Promise<KaspiOrderType | null> {
+        // Prepare headers
+        this.headers = this.getHeaders(site);
+
+        // Prepare params
+        const params = {
+            'filter[orders][code]': orderNumber.replace("KSP-", "")
+        };
+
+        // Make request
+        const response = await this.makeRequest('orders', 'GET', params, null, this.headers);
+
+        const orders = lodash.get(response, 'data.data', null);
+        
+        if(isNull(orders) || isEmpty(orders[0])) {
+            return null;
+        }
+        
+        // Typecast
+        return this.typecastOrder(orders[0], site);
     }
 
     /**

@@ -6,7 +6,6 @@ import RetailCrmApiRepositoryInterface from "./RetailCrmApiRepositoryInterface";
 import lodash from 'lodash';
 import ExportedOrdersInfoType from "../../Types/Crm/ExportedOrdersInfoType";
 import Helper from "sosise-core/build/Helper/Helper";
-import UnfinishedOrdersType from "../../Types/Kaspi/UnfinishedOrdersType";
 import ParamsForOrderStatusChangeInCrmType from "../../Types/Kaspi/ParamsForOrderStatusChangeInCrmType";
 import OrderForSetWayBillLinkType from "../../Types/Kaspi/OrderForSetWayBillLinkType";
 import CrmOrderItemType from "../../Types/Crm/CrmOrderItemType";
@@ -109,9 +108,9 @@ export default class RetailCrmApiRepository implements RetailCrmApiRepositoryInt
         };
 
         try {
-        // Send request
-        await this.makeRequest(url, 'POST', null, params);
-        } catch(err) {
+            // Send request
+            await this.makeRequest(url, 'POST', null, params);
+        } catch (err) {
             throw new CrmRequestException(
                 `Maximum amount of ${RetailCrmApiRepository.MAX_SEND_RETRIES} tries is reached while requesting CRM`,
                 { orderId: order.id },
@@ -136,7 +135,7 @@ export default class RetailCrmApiRepository implements RetailCrmApiRepositoryInt
 
         // Typecast
         const preparedItems = new Array();
-        for(const item of response.data.order.items) {
+        for (const item of response.data.order.items) {
             preparedItems.push({
                 xmlId: item.offer.xmlId,
                 status: item.status,
@@ -144,6 +143,23 @@ export default class RetailCrmApiRepository implements RetailCrmApiRepositoryInt
             });
         }
         return preparedItems;
+    }
+
+    /**
+     * Get order by number
+     */
+    public async getOrderByNumber(orderNumber: string) {
+        const url = `${RetailCrmApiRepository.API_PREFIX}/orders`;
+        const params = {
+            apiKey: this.apiKey,
+            'filter[numbers][]': orderNumber
+        };
+        const response = await this.makeRequest(url, 'GET', params);
+
+        // Typecast
+        const order = response.data.orders[0];
+
+        Helper.dd(order)
     }
 
     /**
