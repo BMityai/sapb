@@ -533,6 +533,8 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
      * Get unfinished orders for get changes from kaspi
      */
     public async getUnfinishedOrders(): Promise<UnfinishedOrdersType[]> {
+        const date = new Date();
+        const lastMonthDate = dayjs(date.setMonth(date.getMonth()-1)).format('YYYY-MM-DD');
         const orders = await this.dbConnection.client
             .table('orders')
             .select([
@@ -547,8 +549,9 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
             ])
             .innerJoin('crm_orders', 'orders.id', 'crm_orders.order_id')
             .innerJoin('kaspi_orders', 'orders.id', 'kaspi_orders.order_id')
-            .whereNotIn('appStatus', [OrderAppStatusesEnum.canceled, OrderAppStatusesEnum.completed])
-            .whereNot('crmStatus', 'converted');  // filtering non-exported order
+            .whereNotIn('appStatus', [OrderAppStatusesEnum.canceled, OrderAppStatusesEnum.completed, OrderAppStatusesEnum.new])
+            .whereNot('crmStatus', 'converted')  // filtering non-exported order
+            .where('orders.created_at', '>', lastMonthDate);  // filtering non-exported order
 
         // Typecast orders
         const typedOrders = new Array();

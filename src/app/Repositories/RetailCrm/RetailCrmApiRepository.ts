@@ -81,6 +81,7 @@ export default class RetailCrmApiRepository implements RetailCrmApiRepositoryInt
             // Send request
             await this.makeRequest(url, 'POST', null, params);
         } catch (err) {
+            Helper.dd(2222222)
             throw new CrmRequestException(
                 `Maximum amount of ${RetailCrmApiRepository.MAX_SEND_RETRIES} tries is reached while requesting CRM`,
                 { orderId: order.id },

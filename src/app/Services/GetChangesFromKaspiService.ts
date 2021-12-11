@@ -1,4 +1,5 @@
 import { isNull } from "lodash";
+import Helper from "sosise-core/build/Helper/Helper";
 import IOC from "sosise-core/build/ServiceProviders/IOC";
 import LoggerService from "sosise-core/build/Services/Logger/LoggerService";
 import storesConfig from "../../config/stores";
@@ -69,7 +70,7 @@ export default class GetChangesFromKaspiService {
         const ordersForChange = await this.addLocalOrderProperties(ordersFromKaspi);
 
         // Sync with crm
-        const response = await this.SyncUpdatedStatusesWithCrm(ordersForChange);
+        const response = await this.syncUpdatedStatusesWithCrm(ordersForChange);
 
         await this.updateOrdersInLocalStorage(response);
     }
@@ -92,7 +93,7 @@ export default class GetChangesFromKaspiService {
         const changedOrders = await this.excludeUnchangedOrders(orderStatusesFromKaspi, unfinishedOrders);
 
         // Sync with crm
-        const response = await this.SyncUpdatedStatusesWithCrm(changedOrders);
+        const response = await this.syncUpdatedStatusesWithCrm(changedOrders);
 
         await this.updateOrdersInLocalStorage(response);
     }
@@ -180,7 +181,7 @@ export default class GetChangesFromKaspiService {
     /**
      * Syn changes with crm
      */
-    private async SyncUpdatedStatusesWithCrm(changedOrders: UnfinishedOrdersType[]): Promise<PromiseSettledResult<any>[]> {
+    private async syncUpdatedStatusesWithCrm(changedOrders: UnfinishedOrdersType[]): Promise<PromiseSettledResult<any>[]> {
         // Logger
         this.logger.info(`[GET CHANGES FROM KASPI] Sync updated statuses with crm`);
 
@@ -194,7 +195,7 @@ export default class GetChangesFromKaspiService {
             }
 
             // If canceled
-            if (order.kaspiStatus === KaspiOrderStatusesEnum.canceled) {
+            if (order.kaspiStatus === KaspiOrderStatusesEnum.canceled || order.kaspiStatus === KaspiOrderStatusesEnum.canceling) {
                 order.appStatus = OrderAppStatusesEnum.canceled;
             }
 
@@ -207,7 +208,6 @@ export default class GetChangesFromKaspiService {
             if (order.kaspiStatus === KaspiOrderStatusesEnum.returnRequested || order.kaspiStatus === KaspiOrderStatusesEnum.returned) {
                 order.appStatus = OrderAppStatusesEnum.returned;
             }
-
             syncPromises.push(this.retailCrmApiRepository.changeOrderStatus(order));
         }
 
