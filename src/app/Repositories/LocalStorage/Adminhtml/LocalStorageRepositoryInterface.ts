@@ -5,6 +5,7 @@ import SaveNewWarehouseType from "../../../Types/SaveNewWarehouseType";
 import StatusMappingType from "../../../Types/StatusMappingType";
 import WarehouseMappingType from "../../../Types/WarehouseMappingType";
 import CreateUserUnifier from "../../../Unifiers/Adminhtml/CreateUserUnifier";
+import PrimevueTableParamsConverterUnifier from "../../../Unifiers/Adminhtml/PrimevueTableParamsConverterUnifier";
 
 export default interface LocalStorageRepositoryInterface {
 
@@ -82,5 +83,10 @@ export default interface LocalStorageRepositoryInterface {
      * Get canceled orders by month
      */
     getCanceledOrdersByMonth(currentMonthNumber: number): Promise<number[]>;
+
+    /**
+     * Get orders
+     */
+    getOrders(params: PrimevueTableParamsConverterUnifier): Promise<any[]>;
 
 }

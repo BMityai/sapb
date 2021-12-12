@@ -200,7 +200,7 @@ export default class GetChangesFromKaspiService {
             }
 
             // If completed
-            if (order.kaspiStatus === KaspiOrderStatusesEnum.completed) {
+            if (order.kaspiStatus === KaspiOrderStatusesEnum.completed || order.kaspiStatus == KaspiOrderStatusesEnum.arrived) {
                 order.appStatus = OrderAppStatusesEnum.completed;
             }
 
@@ -370,8 +370,8 @@ export default class GetChangesFromKaspiService {
 
         const response = await Promise.allSettled(promises);
 
-        for(const result of response) {
-            if(result.status === 'rejected') {
+        for (const result of response) {
+            if (result.status === 'rejected') {
 
                 // Log
                 this.logger.error(`[GET CHANGES FROM KASPI] There was an error installing waybill link`, result.reason);

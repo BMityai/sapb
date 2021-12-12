@@ -549,9 +549,9 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
             ])
             .innerJoin('crm_orders', 'orders.id', 'crm_orders.order_id')
             .innerJoin('kaspi_orders', 'orders.id', 'kaspi_orders.order_id')
-            .whereNotIn('appStatus', [OrderAppStatusesEnum.canceled, OrderAppStatusesEnum.completed, OrderAppStatusesEnum.new])
+            .where('appStatus', OrderAppStatusesEnum.processing)
             .whereNot('crmStatus', 'converted')  // filtering non-exported order
-            .where('orders.created_at', '>', lastMonthDate);  // filtering non-exported order
+            .where('orders.created_at', '>', lastMonthDate);
 
         // Typecast orders
         const typedOrders = new Array();

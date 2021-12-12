@@ -12,6 +12,8 @@ import Helper from 'sosise-core/build/Helper/Helper';
 import OrdersCountInfoType from '../../../Types/OrdersCountInfoType';
 import OrderAppStatusesEnum from '../../../Enums/OrderAppStatusesEnum';
 import dayjs from 'dayjs';
+import PrimevueTableParamsConverterUnifier from '../../../Unifiers/Adminhtml/PrimevueTableParamsConverterUnifier';
+import { isEmpty } from 'lodash';
 
 
 export default class LocalStorageRepository implements LocalStorageRepositoryInterface {
@@ -211,6 +213,43 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
     }
 
     /**
+     * Get orders
+     */
+    public async getOrders(filterParams: PrimevueTableParamsConverterUnifier): Promise<any[]> {
+
+        let sqlString =
+            `SELECT 
+            orders.id AS 'id', 
+            crm_orders.number AS 'orderNumber',
+            kaspi_orders.is_express AS 'isExpress',
+            orders.kaspiStatus AS 'kaspiStatus',
+            orders.crmStatus AS 'crmStatus',
+            orders.created_at AS 'createdAt',
+            orders.updated_at AS 'updatedAt'
+        FROM 
+            orders
+            INNER JOIN crm_orders ON crm_orders.order_id = orders.id
+            INNER JOIN kaspi_orders ON kaspi_orders.order_id = orders.id`;
+
+        if (filterParams.applyFilter) {
+            sqlString = this.applyFilters(sqlString, filterParams);
+        }
+
+        sqlString = this.applySort(sqlString, filterParams);
+
+        sqlString = this.applyPaginate(sqlString, filterParams);
+
+        const result = await this.dbClient.raw(sqlString);
+
+        const preparedOrders = new Array();
+
+        for(const order of result[0]) {
+            preparedOrders.push(order);
+        }
+        return preparedOrders;
+    }
+
+    /**
      * Get all orders by month
      */
     public async getAllOrdersByMonth(currentMonthNumber: number): Promise<number[]> {
@@ -240,7 +279,7 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
 
         const preparedData = new Array();
 
-        for(const [monthNumber, count] of Object.entries(result[0][0])) {
+        for (const [monthNumber, count] of Object.entries(result[0][0])) {
             preparedData.push(count);
         }
 
@@ -277,7 +316,7 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
 
         const preparedData = new Array();
 
-        for(const [monthNumber, count] of Object.entries(result[0][0])) {
+        for (const [monthNumber, count] of Object.entries(result[0][0])) {
             preparedData.push(count);
         }
 
@@ -314,11 +353,42 @@ export default class LocalStorageRepository implements LocalStorageRepositoryInt
 
         const preparedData = new Array();
 
-        for(const [monthNumber, count] of Object.entries(result[0][0])) {
+        for (const [monthNumber, count] of Object.entries(result[0][0])) {
             preparedData.push(count);
         }
 
         return preparedData;
+    }
+
+    /**
+     * Apply primevue sort (default sort by id)
+     */
+    private applySort(sqlString: string, filterParams: PrimevueTableParamsConverterUnifier): string {
+        sqlString += ` ORDER BY ${filterParams.sortField} ${filterParams.sortOrder}`;
+        return sqlString;
+    }
+
+    /**
+     * Apply primevue paginate (default 10 rows)
+     */
+    private applyPaginate(sqlString: string, filterParams: PrimevueTableParamsConverterUnifier): string {
+        const offset = filterParams.pageNumber * filterParams.rows;
+        sqlString += ` LIMIT ${offset}, ${filterParams.rows} `;
+        return sqlString;
+    }
+
+    /**
+     * Apply primevue table filters
+     */
+    private applyFilters(sqlString: string, filterParams: PrimevueTableParamsConverterUnifier): string {
+        let fitIteration = true;
+        for (const filter of filterParams.filters) {
+
+            const havingOrAnd = fitIteration ? 'HAVING' : 'AND';
+            fitIteration = false;
+            sqlString += ` ${havingOrAnd} ${filter} `;
+        }
+        return sqlString;
     }
 
     /**

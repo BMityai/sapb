@@ -7,6 +7,7 @@ import GetAllOrdersInfoForDashboardType from "../../Types/GetAllOrdersInfoForDas
 import GetOrdersResponseType from "../../Types/GetOrdersResponseType";
 import OrdersCountInfoByMonthType from "../../Types/OrdersCountInfoByMonthType";
 import OrdersInfoForTheLastYearForDashboardType from "../../Types/OrdersInfoForTheLastYearForDashboardType";
+import PrimevueTableParamsConverterUnifier from "../../Unifiers/Adminhtml/PrimevueTableParamsConverterUnifier";
 
 export default class DashboardService {
 
@@ -51,8 +52,10 @@ export default class DashboardService {
     /**
      * Get data on orders for the last year for dashboard chart
      */
-    public async getOrders(): Promise<GetOrdersResponseType> {
+    public async getOrders(primevueTableParamsConverterUnifier: PrimevueTableParamsConverterUnifier): Promise<GetOrdersResponseType> {
+        const filteredOrder = await this.localStorageRepository.getOrders(primevueTableParamsConverterUnifier);
 
+        Helper.dump(filteredOrder)
         const orders = [
             {
                 id: 1,

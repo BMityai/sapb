@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import Helper from 'sosise-core/build/Helper/Helper';
 import IOC from 'sosise-core/build/ServiceProviders/IOC';
 import AdminUserService from '../../Services/Adminhtml/AdminUserService';
 import AuthService from '../../Services/Adminhtml/AuthService';
@@ -8,6 +9,7 @@ import WarehouseMappingService from '../../Services/Adminhtml/WarehouseMappingSe
 import AdminAuthUnifier from '../../Unifiers/Adminhtml/AdminAuthUnifier';
 import CreateUserUnifier from '../../Unifiers/Adminhtml/CreateUserUnifier';
 import GetAdminUserByJwtUnifier from '../../Unifiers/Adminhtml/GetAdminUserByJwtUnifier';
+import PrimevueTableParamsConverterUnifier from '../../Unifiers/Adminhtml/PrimevueTableParamsConverterUnifier';
 import SaveStatusesUnifier from '../../Unifiers/Adminhtml/SaveStatusesUnifier';
 import SaveWarehousesUnifier from '../../Unifiers/Adminhtml/SaveWarehousesUnifier';
 
@@ -132,8 +134,9 @@ export default class AdminhtmlController {
      * Get orders for dashboard table
      */
     public async getOrders(request: Request, response: Response, next: NextFunction) {
+        const primevueTableParamsConverterUnifier = new PrimevueTableParamsConverterUnifier(request.query);
         try {
-            const result = await this.dashboardService.getOrders();
+            const result = await this.dashboardService.getOrders(primevueTableParamsConverterUnifier);
             return response.send(result);
         } catch (error) {
             next(error);
